@@ -38,7 +38,7 @@
 
     .title {
         top: 0px;
-        margin: 5px;
+        margin: 10px;
     }
 
 </style>
