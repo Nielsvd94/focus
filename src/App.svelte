@@ -1,5 +1,9 @@
-<script>
+<script lang="ts">
     import Header from './components/Header.svelte';
+	import { initializeApp } from "firebase/app";
+	import { firebaseConfig } from './hosting/firebaseConfig';
+
+	const app = initializeApp(firebaseConfig);
 	
 </script>
 
