@@ -18,6 +18,8 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "sirv-cli": "^2.0.0"
+    "fecha": "^4.2.3",
+    "sirv-cli": "^2.0.0",
+    "superstruct": "^0.16.0"
   }
 }
