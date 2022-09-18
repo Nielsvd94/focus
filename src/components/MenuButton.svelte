@@ -14,7 +14,7 @@
 
     button {
         position: relative;
-        margin: 5px;
+        margin: 10px;
         z-index: 10;
         background-color: Transparent;
         background-repeat: no-repeat;
