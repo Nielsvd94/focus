@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Subject } from '../model/Subject';
+    import type { Subject } from '../model/Subject';
     export let subject: Subject;
 
 </script>
