@@ -3,9 +3,10 @@
     import Subject from './Subject.svelte';
     import type { Subjects } from "../model/subject";
     import { database, databasePath } from '../stores/backend';
-    import { Database, onValue, ref } from 'firebase/database';
+    import { onValue, ref } from 'firebase/database';
     import AddSubject from './AddSubject.svelte';
     import type { Theme } from '../model/theme';
+    import { get as getValue } from 'svelte/store';
 
     // Een onderwerp bestaat uit het hoofd onderwerp plus subonderwerpen
     // Onderwerp is een object en wordt meegegeven aan deze mindspace component
@@ -14,10 +15,7 @@
 
     export let theme: Theme = {title: 'theme1'};
 
-    let db: Database;
-    const unsubsribeFromDatabase = database.subscribe(value => {
-        db = value;
-    });
+    const db = getValue(database);
 
     let subjects: Subjects;
     let subjectKeys: string[] = [];
@@ -28,7 +26,7 @@
     });
 
     async function updateSubjects(data) {
-        subjectKeys = Object.keys(data);
+        subjectKeys = data ? Object.keys(data) : [];
         subjects = data;
     }
 
@@ -40,7 +38,7 @@
     {#if subjectKeys.length > 0}
         {#each Object.keys(subjects) as key}
             <div class="subject">
-                <Subject subject={subjects[key]}></Subject>
+                <Subject key={key} subject={subjects[key]}></Subject>
             </div>
         {/each}
     {:else}
