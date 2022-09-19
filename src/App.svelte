@@ -59,11 +59,6 @@
 
 <style>
 
-	main {
-		margin: 0px;
-		padding: 0px;
-	}
-
 	:global(body) {
 		margin: 0px;
 		padding: 0px;
