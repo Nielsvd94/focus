@@ -2,10 +2,15 @@
     import Header from './components/Header.svelte';
 	import { initializeApp } from "firebase/app";
 	import { firebaseConfig } from './hosting/firebaseConfig';
-	import { firebaseApp, database } from "./stores/backend";
-    import { getDatabase } from 'firebase/database';
+	import { firebaseApp, database, databasePath } from "./stores/backend";
+    import { get, getDatabase, ref } from 'firebase/database';
     import MindSpace from './components/MindSpace.svelte';
     import { onMount } from 'svelte';
+    import { getAuth, onAuthStateChanged } from 'firebase/auth';
+	import { currentUser, loggedIn } from './stores/user';
+    import { assert } from 'superstruct';
+    import { User } from './model/user';
+    import Login from './pages/Login.svelte';
 
 	onMount(async () => {
         while(db === undefined) {
@@ -17,16 +22,40 @@
 	firebaseApp.set(app);
 	const db = getDatabase(app);
 	database.set(db);
+
+	let auth = getAuth();
+	onAuthStateChanged(auth, async (user) =>  {
+		if (user) {
+			const uid = getAuth().currentUser.uid
+          	let userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
+          	const user = {
+				uid: uid,
+				firstName: userDetails.firstName,
+				lastName: userDetails.lastName
+			}
+			assert(userDetails, User);
+			currentUser.set(user);
+			$loggedIn = true;
+		}
+		else {
+			$loggedIn = false;
+		}
+	});
 	
 </script>
 
 <Header></Header>
 
-<MindSpace></MindSpace>
+{#if ($loggedIn === undefined)}
+	<p>Logging in...</p>
 
-<main>
-	
-</main>
+{:else if ($loggedIn !== true)}
+	<Login on:login={() => $loggedIn = true}/>
+{:else}
+
+	<MindSpace></MindSpace>
+
+{/if}
 
 <style>
 
