@@ -13,8 +13,9 @@
     import Login from './pages/Login.svelte';
 
 	onMount(async () => {
-        while(db === undefined) {
+        while(!db) {
             await new Promise(r => setTimeout(r, 50));
+			console.log('waiting for db')
         }
     });
 
@@ -27,18 +28,19 @@
 	onAuthStateChanged(auth, async (user) =>  {
 		if (user) {
 			const uid = getAuth().currentUser.uid
-          	let userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
-          	const user = {
+          	const userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
+          	const userT = {
 				uid: uid,
 				firstName: userDetails.firstName,
 				lastName: userDetails.lastName
 			}
-			assert(userDetails, User);
-			currentUser.set(user);
+			assert(userT, User);
+			currentUser.set(userT);
 			$loggedIn = true;
 		}
 		else {
 			$loggedIn = false;
+			
 		}
 	});
 	
@@ -47,10 +49,13 @@
 <Header></Header>
 
 {#if ($loggedIn === undefined)}
+
 	<p>Logging in...</p>
 
 {:else if ($loggedIn !== true)}
+
 	<Login on:login={() => $loggedIn = true}/>
+
 {:else}
 
 	<MindSpace></MindSpace>

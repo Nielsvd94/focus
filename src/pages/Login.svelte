@@ -36,6 +36,7 @@
           const userCred = await signInWithEmailAndPassword(getAuth(), loginEmail, loginPassword);
 
           const uid = getAuth().currentUser.uid
+          console.log(uid);
           let userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
           const user = {
             uid: uid,
@@ -193,7 +194,7 @@
           break;
  
           default: 
-             message += "Onverwachte foutmelding. Neem contact op met Niels of Chris.";
+             message += "Onverwachte foutmelding.";
              console.log(err);
        }
     }
