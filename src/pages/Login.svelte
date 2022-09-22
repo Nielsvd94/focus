@@ -35,7 +35,7 @@
           validateLoginForm(loginEmail, loginPassword); // Controleer of alle input goed is
           const userCred = await signInWithEmailAndPassword(getAuth(), loginEmail, loginPassword);
 
-          const uid = getAuth().currentUser.uid
+          const uid = getAuth().currentUser?.uid
           console.log(uid);
           let userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
           const user = {
