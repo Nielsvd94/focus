@@ -1,31 +1,24 @@
 <script lang="ts">
-    import type { Subject } from '../model/subject';
-    import type { Theme } from '../model/theme';
+    import type { Note } from '../model/note';
     import { database, databasePath } from '../stores/backend'
     import { get as getValue } from 'svelte/store';
     import { ref, remove } from 'firebase/database';
+    import { currentUser } from '../stores/user';
 
     const db = getValue(database);
 
-    export let theme: Theme = {title: 'theme1'};
-    export let key: string;
-    export let subject: Subject;
+    export let note: Note;
 
-    console.log(subject);
-
-    // Need the user, organization, and theme as a state
-
-    async function deleteSubject() {
-        await remove((ref(db, `${$databasePath}/organization/user1/${theme.title}/${key}`)));
+    async function deleteNote() {
+        await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/notes/${note.key}`)));
     }
-
 
 </script>
 
-<div class="single-subject">
-    <h3>{subject.title}</h3>
-    <p>{subject.description}</p>
-    <button on:click={deleteSubject}>
+<div class="single-note">
+    <h3>{note.title}</h3>
+    <p>{note.description}</p>
+    <button on:click={deleteNote}>
         <svg width=12 height=12>
             <line id="top" x1=0 y1=0 x2=12 y2=12/>
             <line id="bot" x1=0 y1=12 x2=12 y2=0/>

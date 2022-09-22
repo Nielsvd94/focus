@@ -8,6 +8,8 @@
 
 <BurgerButton bind:open={open}/>
 
-<SideMenu bind:open={open}>
-    <slot></slot>
-</SideMenu>
+<SideMenu bind:open={open}></SideMenu>
+
+<style>
+
+</style>

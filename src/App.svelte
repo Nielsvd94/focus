@@ -11,11 +11,19 @@
     import { assert } from 'superstruct';
     import { User } from './model/user';
     import Login from './pages/Login.svelte';
+	import { view } from './stores/displayData';
+    import Organizations from './components/Organizations.svelte';
+    import Themes from './components/Themes.svelte';
+
+	const views = {
+		'MindSpace': MindSpace,
+		'Organizations': Organizations,
+		'Themes': Themes,
+	}
 
 	onMount(async () => {
         while(!db) {
             await new Promise(r => setTimeout(r, 50));
-			console.log('waiting for db')
         }
     });
 
@@ -27,20 +35,24 @@
 	let auth = getAuth();
 	onAuthStateChanged(auth, async (user) =>  {
 		if (user) {
-			const uid = getAuth().currentUser.uid
-          	const userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
-          	const userT = {
-				uid: uid,
-				firstName: userDetails.firstName,
-				lastName: userDetails.lastName
+			const uid = getAuth().currentUser?.uid;
+			if (uid) {
+				const userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
+				const userT = {
+					uid: uid,
+					firstName: userDetails.firstName,
+					lastName: userDetails.lastName
+				}
+				assert(userT, User);
+				currentUser.set(userT);
+				$loggedIn = true;
 			}
-			assert(userT, User);
-			currentUser.set(userT);
-			$loggedIn = true;
+			else {
+				console.log('No uid found for current user');
+			}
 		}
 		else {
 			$loggedIn = false;
-			
 		}
 	});
 	
@@ -58,7 +70,7 @@
 
 {:else}
 
-	<MindSpace></MindSpace>
+	<svelte:component this={views[$view]}></svelte:component>
 
 {/if}
 
