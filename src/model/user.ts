@@ -8,6 +8,7 @@ export const User = object({
 export type User = Infer<typeof User>;
 
 export const Organization = object({
+    key: string(),
     name: string(),
     members: array(string()),
     admin: array(string())

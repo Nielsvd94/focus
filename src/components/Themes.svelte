@@ -1,13 +1,14 @@
 <script lang="ts">
     import { onValue, ref } from "firebase/database";
     import { get as getValue } from 'svelte/store';
-    import type { Theme } from "../model/theme";
+    import type { Theme as ThemeType } from "../model/theme";
     import { database, databasePath } from "../stores/backend";
     import { currentUser } from "../stores/user";
     import AddButton from "./AddButton.svelte";
     import AddTheme from './AddTheme.svelte';
+    import Theme from './Theme.svelte';
 
-    let themes: Theme[] = [];
+    let themes: ThemeType[] = [];
     const db = getValue(database);
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes`), (snapshot) => {
@@ -42,7 +43,7 @@
     {#if themes && themes.length > 0}
         {#each themes as theme}
             <div class="theme">
-                <p>{theme.name}</p>
+                <Theme {theme} />
             </div>
         {/each}
     {:else}

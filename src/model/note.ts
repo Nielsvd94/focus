@@ -11,6 +11,7 @@ export const Note = object({
 export type Note = Infer<typeof Note>;
 
 export const Notes = array(object({
+    key: string(),
     name: string(),
     Note: object({
         title: string(),
