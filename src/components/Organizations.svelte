@@ -1,13 +1,14 @@
 <script lang="ts">
     import { onValue, ref } from "firebase/database";
     import { get as getValue } from 'svelte/store';
-    import type { Organization } from "../model/user";
+    import type { Organization as OrganizationType } from "../model/user";
     import { database, databasePath } from "../stores/backend";
     import { currentUser } from "../stores/user";
     import AddButton from "./AddButton.svelte";
     import AddOrganization from "./AddOrganization.svelte";
+    import Organization from "./Organization.svelte";
 
-    let organizations: Organization[];
+    let organizations: OrganizationType[];
     const db = getValue(database);
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations`), (snapshot) => {
@@ -41,7 +42,7 @@
     {#if organizations && organizations.length > 0}
         {#each organizations as organization}
             <div class="organization">
-                <p>{organization.name}</p>
+                <Organization {organization} />
             </div>
         {/each}
     {:else}

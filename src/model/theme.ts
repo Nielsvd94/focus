@@ -1,6 +1,7 @@
 import { Infer, string, object, optional, array } from 'superstruct'
 
 export const Theme = object({
+    key: string(),
     name: string(),
     description: string(),
     members: array(string()),
@@ -9,6 +10,7 @@ export const Theme = object({
 export type Theme = Infer<typeof Theme>;
 
 export const Themes = array(object({
+    key: string(),
     name: string(),
     subject: object({
         title: string(),
