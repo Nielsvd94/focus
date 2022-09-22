@@ -1,14 +1,12 @@
 <script lang="ts">
-    import BurgerMenu from './Menu.svelte';
+    import Menu from './Menu.svelte';
     import UserMenu from './UserMenu.svelte';
 </script>
 
 <div id="header">
     <div class="menu-button">
-        <BurgerMenu>
-            <h2>Home</h2>
-            <h2>About</h2>
-        </BurgerMenu>
+        <Menu>
+        </Menu>
     </div>
 
     <div class="title-container">
@@ -46,6 +44,7 @@
     .title {
         top: 0px;
         margin: 10px;
+        font-size: 4rem;
     }
 
     .user-menu-container {

@@ -1,4 +1,4 @@
-import { Infer, string, object, optional, date, array } from 'superstruct'
+import { Infer, string, object, array } from 'superstruct'
 
 export const User = object({
     uid: string(),
@@ -6,3 +6,10 @@ export const User = object({
     lastName: string(),
 });
 export type User = Infer<typeof User>;
+
+export const Organization = object({
+    name: string(),
+    members: array(string()),
+    admin: array(string())
+});
+export type Organization = Infer<typeof Organization>;

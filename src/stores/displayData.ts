@@ -1,4 +1,6 @@
 import { writable, Writable } from "svelte/store";
-import type { Subject } from "../model/subject";
+import type { Note } from "../model/note";
 
-export const subjects: Writable<Array<Subject>> = writable([]);
+export const subjects: Writable<Array<Note>> = writable([]);
+
+export const view: Writable<string> = writable('MindSpace');

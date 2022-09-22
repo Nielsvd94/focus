@@ -8,12 +8,10 @@
 
 	let menuOpen = false;
 	let inputValue = '';
-	console.log(inputValue)
 	
     function logout() {
         signOut(getAuth()).then(() => {
             dispatch('logout');
-            console.log('logged out')
         });
    }
 	
@@ -57,7 +55,7 @@
         background-color: white;
         display: none;
         position: absolute;
-        z-index: 1;
+        z-index: 11;
     }
 
     .show {

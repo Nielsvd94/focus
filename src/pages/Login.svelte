@@ -61,8 +61,9 @@
             validateRegisterForm(email, password, firstName, lastName); // Controleer of alle input goed is
             await createUserWithEmailAndPassword(getAuth(), email, password);
     
-            const uid = getAuth().currentUser.uid;
-            if (!(await get(ref(db, `${$databasePath}/users/` + uid))).exists()) {
+            const uid = getAuth().currentUser?.uid;
+            if (uid) {
+               if (!(await get(ref(db, `${$databasePath}/users/` + uid))).exists()) {
                 await set(ref(db, `${$databasePath}/users/` + uid), {
                     firstName: firstName,
                     lastName: lastName,
@@ -71,7 +72,11 @@
                 }
                 else {
                     console.log(`A user with this name already exists`);
-            };
+               };
+            }
+            else {
+               console.log('No uid for this user', auth);
+            }
 
             // Automatisch terug naar inlog scherm
             loginEmail = email;
