@@ -36,8 +36,10 @@
 	onAuthStateChanged(auth, async (user) =>  {
 		if (user) {
 			const uid = getAuth().currentUser?.uid;
+			console.log(uid);
 			if (uid) {
 				const userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
+				console.log('hier?')
 				const userT = {
 					uid: uid,
 					firstName: userDetails.firstName,

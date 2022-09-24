@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { onValue, ref } from "firebase/database";
+    import { get, onValue, ref } from "firebase/database";
+    import { assert } from "superstruct";
     import { get as getValue } from 'svelte/store';
-    import type { Organization as OrganizationType } from "../model/user";
+    import { Organization as OrganizationType } from "../model/user";
     import { database, databasePath } from "../stores/backend";
     import { currentUser } from "../stores/user";
     import AddButton from "./AddButton.svelte";
@@ -16,12 +17,18 @@
         updateOrganizations(data);
     });
 
+    async function getOrganization(key: string) {
+        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
+        return organization;
+    }
+
     async function updateOrganizations(data) {
         const newOrganizations: any[] = [];
         if (data) {
             for (const key of Object.keys(data)) {
-                const newOrganization = data[key];
+                const newOrganization = await getOrganization(key);
                 newOrganization.key = key;
+                assert(newOrganization, OrganizationType);
                 newOrganizations.push(newOrganization);
             }
             organizations = newOrganizations;

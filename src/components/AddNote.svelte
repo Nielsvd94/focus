@@ -74,7 +74,7 @@
             <input class="checkbox" type="checkbox" bind:checked={showOrganizationPicker} />
         </label>
         {#if showOrganizationPicker}
-            {#if organizations.length > 0}
+            {#if organizations && organizations.length > 0}
                 {#each organizations as organization}
                     <label>
                         &nbsp;&nbsp;&nbsp;&nbsp;{organization.name}
@@ -82,7 +82,7 @@
                     </label>
                 {/each}
             {:else}
-                <p>You're not part of any organizations</p>
+                <p class="no-data">You're not part of any organizations</p>
             {/if}
         {/if}
     </div>
@@ -92,7 +92,7 @@
             <input class="checkbox" type="checkbox" bind:checked={showThemePicker} />
         </label>
         {#if showThemePicker}
-            {#if themes.length > 0}
+            {#if themes && themes.length > 0}
                 {#each themes as theme}
                     <label>
                         &nbsp;&nbsp;&nbsp;&nbsp;{theme.name}
@@ -100,7 +100,7 @@
                     </label>
                 {/each}
             {:else}
-                <p>You don't have any themes</p>
+                <p class="no-data">You don't have any themes</p>
             {/if}
         {/if}
     </div>
@@ -147,6 +147,10 @@
 
     .checkbox {
         width: 15px;
+    }
+
+    .no-data {
+        font-size: 8.5pt;
     }
 
 </style>

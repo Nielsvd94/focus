@@ -3,15 +3,39 @@
     import Note from './Note.svelte';
     import type { Note as NoteType } from "../model/note";
     import { database, databasePath } from '../stores/backend';
-    import { onValue, ref } from 'firebase/database';
+    import { get, onValue, ref } from 'firebase/database';
     import AddNote from './AddNote.svelte';
     import type { Theme } from '../model/theme';
     import { get as getValue } from 'svelte/store';
     import AddButton from './AddButton.svelte';
     import { currentUser } from '../stores/user';
-    import type { Organization } from '../model/user';
+    import { Organization } from '../model/user';
+    import { assert } from 'superstruct';
 
-    // klikken op onderwerp = uitvouwen van de onderliggende onderwerpen (bovenliggende onderwerp wordt titel van de pagina, of breadcrumb?)
+    // ophalen van organisaties
+    // ophalen van themas
+    // ophalen van notities
+    // tonen van de verschillende views
+    // togglen tussen de verschillende views
+    // filteren van organisaties
+    // filteren van themas
+    // toevoegen van nieuwe notities
+    // notities meegeven aan de getoonde view
+
+    /**
+     * 
+     * VIEWS
+     *  MINDMAP
+     *  TO DO - DOING - DONE
+     *  KALENDER
+     *  JSON WITHOUT THE SPECIAL CHARACTERS ( BASICALLY JUST CASCADING TABLES WITH ALL LAYERS OF A NOTE SHOWN UNDERNEATH EACHOTHER )
+     * 
+     *  DASHBOARD (ABLE TO CUSTOMIZE?)
+     *  DEFAULT DASHBOARD:
+     *      TOP LEFT INTERACTIVE MINDMAP
+     *      TOP RIGHT CALENDAR (WITH DOTS ON DATES THAT HAVE NOTES AND HOVER OVER TO SEE THE NOTES)
+     *      BOTTOM FULL WIDTH TO DO - DOING - DONE)
+    */
 
     let organizations: Organization[] = [];
     let notes: NoteType[] = [];
@@ -24,12 +48,18 @@
         updateOrganizations(data);
     });
 
+    async function getOrganization(key: string) {
+        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
+        return organization;
+    }
+
     async function updateOrganizations(data) {
         const newOrganizations: any[] = [];
         if (data) {
             for (const key of Object.keys(data)) {
-                const newOrganization = data[key];
+                const newOrganization = await getOrganization(key);
                 newOrganization.key = key;
+                assert(newOrganization, Organization);
                 newOrganizations.push(newOrganization);
             }
             organizations = newOrganizations;
