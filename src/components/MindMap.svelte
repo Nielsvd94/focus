@@ -39,7 +39,7 @@
   </div>
 
 <style>
-
+    /* https://stackoverflow.com/questions/12813573/position-icons-into-circle */
     .container {
         z-index: 5;
         --d: 8em; /* note size */

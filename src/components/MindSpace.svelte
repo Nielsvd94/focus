@@ -11,6 +11,7 @@
     import { currentUser } from '../stores/user';
     import type { Organization } from '../model/user';
     import MindMap from './MindMap.svelte';
+    import Kanban from './Kanban.svelte';
 
     // ophalen van organisaties
     // ophalen van themas
@@ -44,6 +45,7 @@
     let selectedTheme: Theme;
     const views = {
 		'MindMap': MindMap,
+        'Kanban': Kanban
 	}
     let view: string = '';
 
@@ -114,7 +116,11 @@
     <AddNote organizations={organizations} themes={themes}></AddNote>
 </AddButton>
 
-<MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
+{#if view === 'MindMap'}
+    <MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
+{:else if view === 'Kanban'}
+    <Kanban theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></Kanban>
+{/if}
 
 <!-- <svelte:component this={views[view]}></svelte:component> -->
 

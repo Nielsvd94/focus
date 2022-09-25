@@ -13,7 +13,7 @@
     export let organizations: Organization[] = [];
     export let themes: Theme[] = [];
 
-    let note: {title: string, description: string, date?: string, organizations?: string[], themes?: string[]} = {
+    let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none' } = {
         title: '',
         description: ''
     }
@@ -21,20 +21,25 @@
     let selectedOrganizations = [];
     let selectedThemes = [];
     let date: string;
+    let status: 'todo' | 'doing' | 'done' | 'none';
 
     let showOrganizationPicker: boolean = false;
     let showThemePicker: boolean = false;
     let showDatePicker: boolean = false;
+    let showStatusPicker: boolean = false;
 
     function constructNote() {
-        if (selectedOrganizations.length > 0) {
+        if (selectedOrganizations.length > 0 && showOrganizationPicker) {
             note.organizations = selectedOrganizations;
         }
-        if (selectedThemes.length > 0) {
+        if (selectedThemes.length > 0 && showThemePicker) {
             note.themes = selectedThemes;
         }
-        if (date) {
+        if (date && showDatePicker) {
             note.date = date;
+        }
+        if (status && status !== 'none' && showStatusPicker) {
+            note.status = status;
         }
         return note;
     }
@@ -48,6 +53,21 @@
         note.date = date;
     }
 
+    function addStatusToNote() {
+        if (showStatusPicker) {
+            if (status === 'none') {
+            delete note.status;
+            }
+            else {
+                note.status = status;
+            }
+        }
+        else {
+            delete note.status;
+        }
+        console.log('status after ', note.status)
+    }
+
 </script>
 
 <div class="overlay">
@@ -57,6 +77,20 @@
     </div>
     <div>
         <textarea type="text" bind:value={note.description} placeholder="Description" />
+    </div>
+    <div>
+        <label>
+            This note has a status
+            <input class="checkbox" type="checkbox" bind:checked={showStatusPicker} on:change={addStatusToNote} />
+        </label>
+        {#if showStatusPicker}
+            <select bind:value={status} on:change={addStatusToNote} placeholder="Status (optional)">
+                <option value='todo'>To do</option>
+                <option value='doing'>Doing</option>
+                <option value='done'>Done</option>
+                <option value='none'>None</option>
+            </select>
+        {/if}
     </div>
     <div>
         <label>
