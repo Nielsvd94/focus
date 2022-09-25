@@ -3,14 +3,14 @@
     import Note from './Note.svelte';
     import type { Note as NoteType } from "../model/note";
     import { database, databasePath } from '../stores/backend';
-    import { get, onValue, ref } from 'firebase/database';
+    import { get, onValue, ref, update } from 'firebase/database';
     import AddNote from './AddNote.svelte';
     import type { Theme } from '../model/theme';
     import { get as getValue } from 'svelte/store';
     import AddButton from './AddButton.svelte';
     import { currentUser } from '../stores/user';
-    import { Organization } from '../model/user';
-    import { assert } from 'superstruct';
+    import type { Organization } from '../model/user';
+    import MindMap from './MindMap.svelte';
 
     // ophalen van organisaties
     // ophalen van themas
@@ -39,7 +39,13 @@
 
     let organizations: Organization[] = [];
     let notes: NoteType[] = [];
+    let numberOfNotes: number = 0;
     let themes: Theme[] = [];
+    let selectedTheme: Theme;
+    const views = {
+		'MindMap': MindMap,
+	}
+    let view: string = '';
 
     const db = getValue(database);
 
@@ -59,7 +65,6 @@
             for (const key of Object.keys(data)) {
                 const newOrganization = await getOrganization(key);
                 newOrganization.key = key;
-                assert(newOrganization, Organization);
                 newOrganizations.push(newOrganization);
             }
             organizations = newOrganizations;
@@ -71,66 +76,74 @@
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes`), (snapshot) => {
         const data = snapshot.val();
-        updateThemes(data);
+        themes = updateData(data);
     });
-
-    async function updateThemes(data) {
-        const newThemes: any[] = [];
-        if (data) {
-            for (const key of Object.keys(data)) {
-                const newTheme = data[key];
-                newTheme.key = key;
-                newThemes.push(newTheme);
-            }
-            themes = newThemes;
-        }
-        else {
-            themes = data;
-        }
-    }
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), (snapshot) => {
         const data = snapshot.val();
-        updateNotes(data);
+        notes = updateData(data);
+        numberOfNotes = notes ? notes.length : 0;
     });
 
-    async function updateNotes(data: any) {
-        const newNotes: any[] = [];
+    function updateData(data: any) {
+        const newData: any[] = [];
         if (data) {
             for (const key of Object.keys(data)) {
-                const newNote = data[key];
-                newNote.key = key;
-                newNotes.push(newNote);
+                const newEntry = data[key];
+                newEntry.key = key;
+                newData.push(newEntry);
             }
-            notes = newNotes;
+            return newData;
         }
         else {
-            notes = data;
+            return data;
         }
     }
 
 </script>
 
+<div class="select-style">
+    <select id="mounth" bind:value={view}>
+        {#each Object.keys(views) as view}
+            <option value={view}>{view}</option>
+        {/each}
+    </select>
+</div>
+
 <AddButton>
     <AddNote organizations={organizations} themes={themes}></AddNote>
 </AddButton>
 
-<div class="note-container">
-    {#if notes}
-        {#each notes as note}
-            <div class="note">
-                <Note note={note}></Note>
-            </div>
-        {/each}
-    {:else}
-        <h2>There are no notes for this theme yet</h2>
-    {/if}
-</div>
+<MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
+
+<!-- <svelte:component this={views[view]}></svelte:component> -->
 
 <style>
 
-    .note, h2 {
-        margin-left: 350px;
-    }
+.select-style {
+    border: 1px solid #ccc;
+    width: 120px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fafafa no-repeat 90% 50%;
+}
+
+.select-style select {
+    padding: 5px 8px;
+    width: 130%;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    background-image: none;
+    -webkit-appearance: none;
+}
+
+.select-style select:focus {
+    outline: none;
+}
+
+option {
+    background-color: white;
+}
 
 </style>

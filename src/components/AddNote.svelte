@@ -127,7 +127,7 @@
         right: 0;
         padding: 10px;
         float: right;
-        /* width: min-content; */
+        z-index: 9;
     }
 
     input {
