@@ -1,12 +1,16 @@
 <script lang="ts">
-    import Menu from './Menu.svelte';
     import UserMenu from './UserMenu.svelte';
+    import MenuButton from './MenuButton.svelte'
+    import SideMenu from './SideMenu.svelte'
+
+    export let open = false;
 </script>
 
 <div id="header">
     <div class="menu-button">
-        <Menu>
-        </Menu>
+        <MenuButton bind:open={open}/>
+
+        <SideMenu bind:open={open}></SideMenu>
     </div>
 
     <div class="title-container">

@@ -10,6 +10,7 @@
     });
 
     let newTheme: Theme = {
+        key: '',
         name: '',
         description: '',
         members: [$currentUser.uid],
@@ -17,8 +18,7 @@
     }
 
     async function addTheme() {
-        const newThemeKey = await push(ref(db, `${$databasePath}/themes/`), newTheme);
-        await set(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes/${newThemeKey.key}`), newTheme);
+        await push(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes`), newTheme);
     };
 
 </script>

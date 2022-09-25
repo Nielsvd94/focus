@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Database, ref, set, push } from "firebase/database";
+    import { Database, ref, set, push, update } from "firebase/database";
     import type { Organization } from "../model/user";
     import { database, databasePath } from "../stores/backend";
     import { currentUser } from "../stores/user";
@@ -9,15 +9,16 @@
         db = value;
     });
 
-    let newOrganization: Organization = {
+    let newOrganization = {
         name: '',
         members: [$currentUser.uid],
         admin: [$currentUser.uid]
     }
 
     async function addOrganization() {
-        const newOrganizationKey = await push(ref(db, `${$databasePath}/organizations/`), newOrganization);
-        await set(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${newOrganizationKey.key}`), newOrganization);
+        console.log(newOrganization);
+        const newOrganizationKey = await push(ref(db, `${$databasePath}/organizations`), newOrganization);
+        await set(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${newOrganizationKey.key}`), true);
     };
 
 </script>
