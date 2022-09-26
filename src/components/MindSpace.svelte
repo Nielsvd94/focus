@@ -47,7 +47,7 @@
 		'MindMap': MindMap,
         'Kanban': Kanban
 	}
-    let view: string = '';
+    let view: string = 'Kanban';
 
     const db = getValue(database);
 
@@ -102,54 +102,95 @@
         }
     }
 
+    function logView() {
+        console.log(view);
+    }
+
 </script>
 
-<div class="select-style">
-    <select id="mounth" bind:value={view}>
-        {#each Object.keys(views) as view}
-            <option value={view}>{view}</option>
-        {/each}
-    </select>
+<div>
+
+    <div id="header">
+        <div class="viewpicker">
+            <button class="dropbtn">Switch view</button>
+            <div class="dropdown-content">
+                {#each Object.keys(views) as viewOption}
+                    <!-- svelte-ignore a11y-invalid-attribute -->
+                    <a href="#" on:click={() => view = viewOption}>{viewOption}</a>
+                {/each}
+            </div>
+        </div>
+    </div>
+
+    <AddButton>
+        <AddNote organizations={organizations} themes={themes}></AddNote>
+    </AddButton>
+
+    <div class="note-view">
+        {#if view === 'MindMap'}
+            <MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
+        {:else if view === 'Kanban'}
+            <Kanban notes={notes}></Kanban>
+        {/if}
+    </div>
 </div>
-
-<AddButton>
-    <AddNote organizations={organizations} themes={themes}></AddNote>
-</AddButton>
-
-{#if view === 'MindMap'}
-    <MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
-{:else if view === 'Kanban'}
-    <Kanban theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></Kanban>
-{/if}
 
 <!-- <svelte:component this={views[view]}></svelte:component> -->
 
 <style>
 
-.select-style {
-    border: 1px solid #ccc;
-    width: 120px;
-    border-radius: 3px;
-    overflow: hidden;
-    background: #fafafa no-repeat 90% 50%;
-}
+    .dropbtn {
+        background-color: white;
+        color: black;
+        padding: 3px 10px 3px;
+        font-size: 16px;
+        height: 30px;
+        margin: 0px;
+        border: none;
+        border-left: 1px solid grey;
+        border-right: 1px solid grey;
+    }
 
-.select-style select {
-    padding: 5px 8px;
-    width: 130%;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    background-image: none;
-    -webkit-appearance: none;
-}
+    .viewpicker {
+        position: relative;
+        display: inline-block;
+        margin-left: 300px;
+    }
 
-.select-style select:focus {
-    outline: none;
-}
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: lightgrey;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
 
-option {
-    background-color: white;
-}
+    .dropdown-content a {
+        color: black;
+        padding: 12px 10px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {background-color: lightgrey;}
+
+    .viewpicker:hover .dropdown-content {display: block;}
+
+    .viewpicker:hover .dropbtn {background-color: lightgrey;}
+
+    .note-view {
+        margin-top: 20px;
+    }
+
+    #header {
+        grid-template-columns: 10% 60% 30%;
+        background-color: white;
+        color: black;
+        margin: 0;
+        padding: 0;
+        height: 30px;
+        border-bottom: 1px solid grey;
+    }
 
 </style>

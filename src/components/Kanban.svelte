@@ -1,74 +1,126 @@
 <script lang="ts">
-    import Note from "./Note.svelte";
     import type { Note as NoteType } from '../model/note';
     import { afterUpdate } from "svelte";
-    import type { Theme } from "../model/theme";
+    import { map } from 'superstruct';
+    import { each } from 'svelte/internal';
 
-    export let theme: Theme;
     export let notes: NoteType[] = [];
-    export let numberOfNotes;
-    export let notesToDo: NoteType[] = [];
-    export let notesDoing: NoteType[] = [];
-    export let notesDone: NoteType[] = [];
+    let swimlanes: {status: string, header: string}[] = [{ status: 'todo', header: 'To do' }, { status: 'doing', header: 'Doing' }, { status: 'done', header: 'Done' }];
+    let showAddSwimlaneView: boolean = false;
+    let newSwimlaneHeader: string = '';
+    let newSwimlaneFilter: string = '';
 
-    afterUpdate(() => {
-        numberOfNotes = notes ? notes.length : 0;
-        notesToDo = notes.filter(note => note.status === 'todo');
-        notesDoing = notes.filter(note => note.status === 'doing');
-        notesDone = notes.filter(note => note.status === 'done');
-    });
+    function onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    function uniqueStatuses() {
+        const statuses = notes.map(note => { return note.status });
+        const uniqueStatuses = statuses.filter(onlyUnique);
+        console.log(statuses);
+        console.log(uniqueStatuses);
+        return uniqueStatuses;
+    }
+
+    function toggleAddSwimlane() {
+        showAddSwimlaneView = !showAddSwimlaneView;
+    }
+
+    function addSwimlane() {
+        const newSwimlanes: {status: string, header: string}[] = swimlanes;
+        newSwimlanes.push({ header: newSwimlaneHeader, status: newSwimlaneFilter });
+        swimlanes = newSwimlanes;
+    }
+
+
 
 </script>
 
 <div class="kanban-view">
-    <div class="status-todo">
-        <h3 class="column-header">
-            To do
-        </h3>
-        {#each notesToDo as noteToDo}
+
+    <div class="swimlanes">
+        {#each swimlanes as swimlane}
+            <div class="swimlane-{swimlane.status}">
+                <h3 class="column-header">
+                    {swimlane.header}
+                </h3>
+                {#each notes.filter(note => note.status === swimlane.status) as note}
+                    <!-- svelte-ignore a11y-invalid-attribute -->
+                    <div class="note">
+                        <a href='#' class="note-title">{note.title}</a>
+                    </div>
+                {/each}
+            </div>
+        {/each}
+    </div>
+
+    <div class="add-swimlane">
+        <div>
             <!-- svelte-ignore a11y-invalid-attribute -->
-            <a href='#' class="note-title">{noteToDo.title}</a><br>
-        {/each}
-    </div>
-    <div class="status-doing">
-        <h3 class="column-header">
-            Doing
-        </h3>
-        {#each notesDoing as noteDoing}
-        <!-- svelte-ignore a11y-invalid-attribute -->
-            <a href='#' class="note-title">{noteDoing.title}</a><br>
-        {/each}
-    </div>
-    <div class="status-done">
-        <h3 class="column-header">
-            Done
-        </h3>
-        {#each notesDone as noteDone}
-        <!-- svelte-ignore a11y-invalid-attribute -->
-            <a href='#' class="note-title">{noteDone.title}</a><br>
-        {/each}
+            <a href='#' on:click={toggleAddSwimlane}>Add a new column {showAddSwimlaneView ? '(hide)' : '(show)'}</a>
+        </div>
+        {#if showAddSwimlaneView}
+            <label>
+                Column header:  
+                <input placeholder="Header" bind:value={newSwimlaneHeader} />
+            </label>
+            <label>
+                Show notes with status:  
+                <select placeholder="Show notes with status" bind:value={newSwimlaneFilter}>
+                    {#each uniqueStatuses() as status}
+                        <option value={status}>{status}</option>
+                    {/each}
+                </select>
+            </label>
+            <button on:click={addSwimlane}>Add</button>
+        {/if}
     </div>
 </div>
 
 <style>
+
     .kanban-view {
+        margin-left: 300px;   
+    }
+    .swimlanes {
         display: grid;
-        grid-template-columns: 30vw 30vw 30vw;
+        grid-auto-columns: 25vw;
         column-gap: 1px;
-        margin-left: 300px;
+        grid-auto-flow: column;
+        overflow-x: scroll;
+        max-width: 75w;
     }
 
     h3 {
-        margin-left: 5px;
+        margin-left: 7px;
+        margin-right: 7px;
+        border-bottom: 1px solid lightgrey;
     }
 
-    [class^=status] {
-        border-left: 1px solid #dfdfdf;
+    [class^=swimlane-] {
+        border-left: 1px solid lightgrey;
+    }
+
+    .note {
+        margin: 7px;
     }
 
     .note-title {
-        margin: 5px;
         color: black;
+    }
+
+    .add-swimlane {
+        margin: 7px;
+    }
+
+    .add-swimlane a {
+        color: grey;
+        margin: 5px;
+        padding: 3px;
+    }
+
+    .add-swimlane > label {
+        margin: 10px;
     }
 
 </style>
