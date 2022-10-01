@@ -8,6 +8,7 @@
     const db = getValue(database);
 
     export let note: Note;
+    export let showNoteData: string[] = [];
 
     async function deleteNote() {
         await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/notes/${note.key}`)));
@@ -16,8 +17,12 @@
 </script>
 
 <div class="single-note">
-    <h3 class="note-title">{note.title}</h3>
-    <p class="note-description">{note.description}</p>
+    {#if showNoteData.includes('title')}
+        <h3 class="note-title">{note.title}</h3>
+    {/if}
+    {#if showNoteData.includes('description')}
+        <p class="note-description">{note.description}</p>
+    {/if}
     <button class="delete-note" on:click={deleteNote}>
         <svg width=12 height=12>
             <line id="top" x1=0 y1=0 x2=12 y2=12/>
@@ -38,13 +43,18 @@
         outline: none;
         position: absolute;
         top: 0;
-        right: 0;
-        margin-right: -20px;
+        left: 0;
+        margin-left: -20px;
+        margin-top: -2px;
+        opacity: 0%;
+    }
+
+    .single-note:hover .delete-note {
+        opacity: 50%;
     }
 
     svg line {
         stroke: grey;
-        opacity: 40%;
         stroke-width: 3;
     }
 
@@ -62,7 +72,5 @@
     .note-description {
         margin: 3px;
     }
-
-
 
 </style>

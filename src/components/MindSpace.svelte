@@ -12,16 +12,18 @@
     import type { Organization } from '../model/user';
     import MindMap from './MindMap.svelte';
     import Kanban from './Kanban.svelte';
+    import SubHeader from './SubHeader.svelte';
 
-    // ophalen van organisaties
-    // ophalen van themas
-    // ophalen van notities
-    // tonen van de verschillende views
-    // togglen tussen de verschillende views
-    // filteren van organisaties
-    // filteren van themas
-    // toevoegen van nieuwe notities
-    // notities meegeven aan de getoonde view
+    // WAT MOET DE MINDSPACE DOEN:
+        // V ophalen van organisaties
+        // V ophalen van themas
+        // V ophalen van notities
+        // V tonen van de verschillende views
+        // V togglen tussen de verschillende views
+        // filteren van organisaties
+        // filteren van themas
+        // V toevoegen van nieuwe notities
+        // V notities meegeven aan de getoonde view
 
     /**
      * 
@@ -38,11 +40,25 @@
      *      BOTTOM FULL WIDTH TO DO - DOING - DONE)
     */
 
+    /**
+     * Notities krijgen een optioneel veld 'Parent'
+     * De kinderen van notitie A zijn automatisch de notities die als parent notitie A hebben (veld 'children' is overbodig
+     * 
+     * filteren om themas
+     */
+
+     /**
+      * SUB-HEADER component maken en toevoegen aan iedere view waarbij de elementen worden meegegeven die erin moeten worden getoond
+      * kanban: swimlane toevoegen
+      * mindmap: breadcrumb van hoever je bent doorgeklikt? clickable maken
+      */
+
     let organizations: Organization[] = [];
     let notes: NoteType[] = [];
+    let displayNotes: NoteType[] = [];
     let numberOfNotes: number = 0;
     let themes: Theme[] = [];
-    let selectedTheme: Theme;
+    let selectedTheme: Theme | null;
     const views = {
 		'MindMap': MindMap,
         'Kanban': Kanban
@@ -84,7 +100,11 @@
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), (snapshot) => {
         const data = snapshot.val();
         notes = updateData(data);
-        numberOfNotes = notes ? notes.length : 0;
+        if (displayNotes.length === 0) {
+            displayNotes = updateData(data);
+        }
+        filterNotes(selectedTheme);
+        numberOfNotes = displayNotes ? displayNotes.length : 0;
     });
 
     function updateData(data: any) {
@@ -102,16 +122,21 @@
         }
     }
 
-    function logView() {
-        console.log(view);
+    function filterNotes(theme: Theme | null) {
+        if (theme) {
+            displayNotes = notes.filter(note => note.themes?.includes(theme.name));
+        }
+        else {
+            displayNotes = notes;
+        }
     }
 
 </script>
 
 <div>
 
-    <div id="header">
-        <div class="viewpicker">
+    <SubHeader>
+        <div class="subheader-dropdown">
             <button class="dropbtn">Switch view</button>
             <div class="dropdown-content">
                 {#each Object.keys(views) as viewOption}
@@ -120,7 +145,20 @@
                 {/each}
             </div>
         </div>
-    </div>
+        <div class="subheader-dropdown">
+            <button class="dropbtn">Select theme</button>
+            <div class="dropdown-content">
+                {#if themes && themes.length > 0}
+                    <!-- svelte-ignore a11y-invalid-attribute -->
+                    <a href="#" on:click={() => { selectedTheme = null; filterNotes(null); }}>Show all</a>
+                    {#each themes as theme}
+                        <!-- svelte-ignore a11y-invalid-attribute -->
+                        <a href="#" on:click={() => { selectedTheme = theme; filterNotes(selectedTheme); }}>{theme.name}</a>
+                    {/each}
+                {/if}
+            </div>
+        </div>
+    </SubHeader>
 
     <AddButton>
         <AddNote organizations={organizations} themes={themes}></AddNote>
@@ -128,9 +166,9 @@
 
     <div class="note-view">
         {#if view === 'MindMap'}
-            <MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
+            <MindMap theme={selectedTheme} notes={displayNotes} numberOfNotes={numberOfNotes}></MindMap>
         {:else if view === 'Kanban'}
-            <Kanban notes={notes}></Kanban>
+            <Kanban notes={displayNotes}></Kanban>
         {/if}
     </div>
 </div>
@@ -151,10 +189,13 @@
         border-right: 1px solid grey;
     }
 
-    .viewpicker {
+    .subheader-dropdown:first-of-type {
+        margin-left: 300px;
+    }
+
+    .subheader-dropdown {
         position: relative;
         display: inline-block;
-        margin-left: 300px;
     }
 
     .dropdown-content {
@@ -175,22 +216,13 @@
 
     .dropdown-content a:hover {background-color: lightgrey;}
 
-    .viewpicker:hover .dropdown-content {display: block;}
+    .subheader-dropdown:hover .dropdown-content {display: block;}
 
-    .viewpicker:hover .dropbtn {background-color: lightgrey;}
+    .subheader-dropdown:hover .dropbtn {background-color: lightgrey;}
 
     .note-view {
         margin-top: 20px;
     }
 
-    #header {
-        grid-template-columns: 10% 60% 30%;
-        background-color: white;
-        color: black;
-        margin: 0;
-        padding: 0;
-        height: 30px;
-        border-bottom: 1px solid grey;
-    }
 
 </style>

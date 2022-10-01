@@ -4,7 +4,7 @@
     import { afterUpdate } from "svelte";
     import type { Theme } from "../model/theme";
 
-    export let theme: Theme;
+    export let theme: Theme | null;
     export let notes: NoteType[] = [];
     export let numberOfNotes;
     let has_mid = 0; /* 0 if there's no item in the middle, 1 otherwise */
@@ -25,12 +25,12 @@
 
 <div class="container" style="--m: {m}; --tan: {+tan.toFixed(2)}">
     <!-- svelte-ignore a11y-invalid-attribute -->
-    <a href='#'>{theme? theme : ''}</a>
+    <a class="theme" href='#'>{theme ? theme.name : ''}</a>
     {#if notes}
         {#each notes as note, i}
             <!-- svelte-ignore a11y-invalid-attribute -->
             <a style={i - has_mid >= 0 ? `--i: ${i}` : null} href='#'>
-                <Note note={note}></Note>
+                <Note showNoteData={['title', 'description']} note={note}></Note>
             </a>
         {/each}
     {:else}
@@ -62,7 +62,11 @@
             rotate(var(--az)) 
             translate(var(--r))
             rotate(calc(-1*var(--az)));
+    }
 
+    .theme {
+        font-weight: bold;
+        font-size: 3rem;
     }
     
 

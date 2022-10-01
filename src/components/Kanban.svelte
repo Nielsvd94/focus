@@ -1,8 +1,5 @@
 <script lang="ts">
     import type { Note as NoteType } from '../model/note';
-    import { afterUpdate } from "svelte";
-    import { map } from 'superstruct';
-    import { each } from 'svelte/internal';
 
     export let notes: NoteType[] = [];
     let swimlanes: {status: string, header: string}[] = [{ status: 'todo', header: 'To do' }, { status: 'doing', header: 'Doing' }, { status: 'done', header: 'Done' }];
@@ -17,8 +14,6 @@
     function uniqueStatuses() {
         const statuses = notes.map(note => { return note.status });
         const uniqueStatuses = statuses.filter(onlyUnique);
-        console.log(statuses);
-        console.log(uniqueStatuses);
         return uniqueStatuses;
     }
 
@@ -31,8 +26,6 @@
         newSwimlanes.push({ header: newSwimlaneHeader, status: newSwimlaneFilter });
         swimlanes = newSwimlanes;
     }
-
-
 
 </script>
 
