@@ -11,16 +11,19 @@
     import { currentUser } from '../stores/user';
     import type { Organization } from '../model/user';
     import MindMap from './MindMap.svelte';
+    import Kanban from './Kanban.svelte';
+    import SubHeader from './SubHeader.svelte';
 
-    // ophalen van organisaties
-    // ophalen van themas
-    // ophalen van notities
-    // tonen van de verschillende views
-    // togglen tussen de verschillende views
-    // filteren van organisaties
-    // filteren van themas
-    // toevoegen van nieuwe notities
-    // notities meegeven aan de getoonde view
+    // WAT MOET DE MINDSPACE DOEN:
+        // V ophalen van organisaties
+        // V ophalen van themas
+        // V ophalen van notities
+        // V tonen van de verschillende views
+        // V togglen tussen de verschillende views
+        // filteren van organisaties
+        // filteren van themas
+        // V toevoegen van nieuwe notities
+        // V notities meegeven aan de getoonde view
 
     /**
      * 
@@ -37,15 +40,30 @@
      *      BOTTOM FULL WIDTH TO DO - DOING - DONE)
     */
 
+    /**
+     * Notities krijgen een optioneel veld 'Parent'
+     * De kinderen van notitie A zijn automatisch de notities die als parent notitie A hebben (veld 'children' is overbodig
+     * 
+     * filteren om themas
+     */
+
+     /**
+      * SUB-HEADER component maken en toevoegen aan iedere view waarbij de elementen worden meegegeven die erin moeten worden getoond
+      * kanban: swimlane toevoegen
+      * mindmap: breadcrumb van hoever je bent doorgeklikt? clickable maken
+      */
+
     let organizations: Organization[] = [];
     let notes: NoteType[] = [];
+    let displayNotes: NoteType[] = [];
     let numberOfNotes: number = 0;
     let themes: Theme[] = [];
-    let selectedTheme: Theme;
+    let selectedTheme: Theme | null;
     const views = {
 		'MindMap': MindMap,
+        'Kanban': Kanban
 	}
-    let view: string = '';
+    let view: string = 'Kanban';
 
     const db = getValue(database);
 
@@ -82,7 +100,11 @@
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), (snapshot) => {
         const data = snapshot.val();
         notes = updateData(data);
-        numberOfNotes = notes ? notes.length : 0;
+        if (displayNotes.length === 0) {
+            displayNotes = updateData(data);
+        }
+        filterNotes(selectedTheme);
+        numberOfNotes = displayNotes ? displayNotes.length : 0;
     });
 
     function updateData(data: any) {
@@ -100,50 +122,107 @@
         }
     }
 
+    function filterNotes(theme: Theme | null) {
+        if (theme && notes) {
+            displayNotes = notes.filter(note => note.themes?.includes(theme.name));
+        }
+        else {
+            displayNotes = notes;
+        }
+    }
+
 </script>
 
-<div class="select-style">
-    <select id="mounth" bind:value={view}>
-        {#each Object.keys(views) as view}
-            <option value={view}>{view}</option>
-        {/each}
-    </select>
+<div>
+
+    <SubHeader>
+        <div class="subheader-dropdown">
+            <button class="dropbtn">Switch view</button>
+            <div class="dropdown-content">
+                {#each Object.keys(views) as viewOption}
+                    <!-- svelte-ignore a11y-invalid-attribute -->
+                    <a href="#" on:click={() => view = viewOption}>{viewOption}</a>
+                {/each}
+            </div>
+        </div>
+        <div class="subheader-dropdown">
+            <button class="dropbtn">Select theme</button>
+            <div class="dropdown-content">
+                {#if themes && themes.length > 0}
+                    <!-- svelte-ignore a11y-invalid-attribute -->
+                    <a href="#" on:click={() => { selectedTheme = null; filterNotes(null); }}>Show all</a>
+                    {#each themes as theme}
+                        <!-- svelte-ignore a11y-invalid-attribute -->
+                        <a href="#" on:click={() => { selectedTheme = theme; filterNotes(selectedTheme); }}>{theme.name}</a>
+                    {/each}
+                {/if}
+            </div>
+        </div>
+    </SubHeader>
+
+    <AddButton>
+        <AddNote organizations={organizations} themes={themes}></AddNote>
+    </AddButton>
+
+    <div class="note-view">
+        {#if view === 'MindMap'}
+            <MindMap theme={selectedTheme} notes={displayNotes} numberOfNotes={numberOfNotes}></MindMap>
+        {:else if view === 'Kanban'}
+            <Kanban notes={displayNotes}></Kanban>
+        {/if}
+    </div>
 </div>
-
-<AddButton>
-    <AddNote organizations={organizations} themes={themes}></AddNote>
-</AddButton>
-
-<MindMap theme={selectedTheme} notes={notes} numberOfNotes={numberOfNotes}></MindMap>
 
 <!-- <svelte:component this={views[view]}></svelte:component> -->
 
 <style>
 
-.select-style {
-    border: 1px solid #ccc;
-    width: 120px;
-    border-radius: 3px;
-    overflow: hidden;
-    background: #fafafa no-repeat 90% 50%;
-}
+    .dropbtn {
+        background-color: white;
+        color: black;
+        padding: 3px 10px 3px;
+        font-size: 16px;
+        height: 30px;
+        margin: 0px;
+        border: none;
+        border-left: 1px solid grey;
+        border-right: 1px solid grey;
+    }
 
-.select-style select {
-    padding: 5px 8px;
-    width: 130%;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    background-image: none;
-    -webkit-appearance: none;
-}
+    .subheader-dropdown:first-of-type {
+        margin-left: 300px;
+    }
 
-.select-style select:focus {
-    outline: none;
-}
+    .subheader-dropdown {
+        position: relative;
+        display: inline-block;
+    }
 
-option {
-    background-color: white;
-}
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: lightgrey;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 10px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {background-color: lightgrey;}
+
+    .subheader-dropdown:hover .dropdown-content {display: block;}
+
+    .subheader-dropdown:hover .dropbtn {background-color: lightgrey;}
+
+    .note-view {
+        margin-top: 20px;
+    }
+
 
 </style>
