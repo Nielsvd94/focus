@@ -37,12 +37,14 @@
                 <h3 class="column-header">
                     {swimlane.header}
                 </h3>
-                {#each notes.filter(note => note.status === swimlane.status) as note}
-                    <!-- svelte-ignore a11y-invalid-attribute -->
-                    <div class="note">
-                        <a href='#' class="note-title">{note.title}</a>
-                    </div>
-                {/each}
+                {#if notes && notes.length > 0}
+                    {#each notes.filter(note => note.status === swimlane.status) as note}
+                        <!-- svelte-ignore a11y-invalid-attribute -->
+                        <div class="note">
+                            <a href='#' class="note-title">{note.title}</a>
+                        </div>
+                    {/each}
+                {/if}
             </div>
         {/each}
     </div>
