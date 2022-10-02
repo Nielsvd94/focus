@@ -36,7 +36,6 @@
         delete note.organizations;
         delete note.themes;
         if (showOrganizationPicker && selectedOrganizations.length > 0 && showOrganizationPicker) {
-            console.log(selectedOrganizations);
             note.organizations = selectedOrganizations;
         }
         if (showThemePicker && selectedThemes.length > 0 && showThemePicker) {
@@ -82,7 +81,6 @@
         else {
             delete note.status;
         }
-        console.log('status after ', note.status)
     }
 
 </script>

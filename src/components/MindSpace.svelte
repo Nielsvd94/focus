@@ -123,10 +123,8 @@
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), (snapshot) => {
         const data = snapshot.val();
         personalNotes = updateData(data);
-        console.log('updating personal notes')
         if (displayNotes.length === 0) {
             displayNotes = updateData(data);
-            console.log('updating display notes')
         }
         filterNotes(selectedTheme);
         numberOfNotes = displayNotes ? displayNotes.length : 0;
@@ -158,12 +156,10 @@
 
     async function updateDisplayNotes() {
         let totalNotes: any[] = [];
-        console.log('show personal notes ', showPersonalNotes)
         if (showPersonalNotes && personalNotes && personalNotes.length > 0) {
             totalNotes.push(...personalNotes);
         }
         if (showNotesForOrganizations && showNotesForOrganizations.length > 0) {
-            console.log('show notes for org', showNotesForOrganizations)
             const notesForOrganization = await getNotesForOrganization();
             if (notesForOrganization && notesForOrganization.length > 0)
             totalNotes.push(...notesForOrganization);

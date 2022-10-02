@@ -11,8 +11,6 @@
 
     async function deleteOrganization() {
         if (organization.members.length === 1 && organization.members[0] === $currentUser.uid) {
-            console.log(organization)
-            console.log($currentUser.uid)
             await remove((ref(db, `${$databasePath}/organizations/${organization.key}`)));
         }
         await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${organization.key}`)));
