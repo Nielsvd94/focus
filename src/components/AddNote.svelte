@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Database, ref, push } from "firebase/database";
+    import { createEventDispatcher } from "svelte";
     import type { Theme } from "../model/theme";
     import type { Organization } from "../model/user";
     import { database, databasePath } from "../stores/backend";
@@ -18,6 +19,8 @@
         description: ''
     }
 
+    const dispatch = createEventDispatcher();
+
     let selectedOrganizations = [];
     let selectedThemes = [];
     let date: string;
@@ -29,10 +32,14 @@
     let showStatusPicker: boolean = false;
 
     function constructNote() {
-        if (selectedOrganizations.length > 0 && showOrganizationPicker) {
+        delete note.date;
+        delete note.organizations;
+        delete note.themes;
+        if (showOrganizationPicker && selectedOrganizations.length > 0 && showOrganizationPicker) {
+            console.log(selectedOrganizations);
             note.organizations = selectedOrganizations;
         }
-        if (selectedThemes.length > 0 && showThemePicker) {
+        if (showThemePicker && selectedThemes.length > 0 && showThemePicker) {
             note.themes = selectedThemes;
         }
         if (date && showDatePicker) {
@@ -46,7 +53,17 @@
 
     async function addNote() {
         const newNote = constructNote();
-        await push(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), newNote);
+        if (newNote.organizations && newNote.organizations.length > 0) {
+            for (const organization of newNote.organizations) {
+                await push(ref(db, `${$databasePath}/organizations/${organization}/notes`), newNote);
+                dispatch('addedNoteToOrganization', {
+                    organizationKey: organization
+                })
+            }
+        }
+        else {
+            await push(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), newNote);
+        }
     };
 
     function addDateToNote() {
@@ -112,7 +129,7 @@
                 {#each organizations as organization}
                     <label>
                         &nbsp;&nbsp;&nbsp;&nbsp;{organization.name}
-                        <input class="checkbox" type="checkbox" bind:group={selectedOrganizations} value={organization.name} />
+                        <input class="checkbox" type="checkbox" bind:group={selectedOrganizations} value={organization.key} />
                     </label>
                 {/each}
             {:else}

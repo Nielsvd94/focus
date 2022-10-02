@@ -21,7 +21,7 @@
         // V tonen van de verschillende views
         // V togglen tussen de verschillende views
         // filteren van organisaties
-        // filteren van themas
+        // V filteren van themas
         // V toevoegen van nieuwe notities
         // V notities meegeven aan de getoonde view
 
@@ -54,7 +54,8 @@
       */
 
     let organizations: Organization[] = [];
-    let notes: NoteType[] = [];
+    let personalNotes: NoteType[] = [];
+    let organizationNotes: {organization: string, notes: NoteType[]}[] = [];
     let displayNotes: NoteType[] = [];
     let numberOfNotes: number = 0;
     let themes: Theme[] = [];
@@ -63,13 +64,16 @@
 		'MindMap': MindMap,
         'Kanban': Kanban
 	}
-    let view: string = 'Kanban';
+    let view: string = 'MindMap';
+
+    let showPersonalNotes: boolean = true;
+    let showNotesForOrganizations: Organization[] = [];
 
     const db = getValue(database);
 
-    onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations`), (snapshot) => {
+    onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations`), async (snapshot) => {
         const data = snapshot.val();
-        updateOrganizations(data);
+        organizations = await updateOrganizations(data);
     });
 
     async function getOrganization(key: string) {
@@ -77,7 +81,7 @@
         return organization;
     }
 
-    async function updateOrganizations(data) {
+    async function updateOrganizations(data: any) {
         const newOrganizations: any[] = [];
         if (data) {
             for (const key of Object.keys(data)) {
@@ -85,12 +89,31 @@
                 newOrganization.key = key;
                 newOrganizations.push(newOrganization);
             }
-            organizations = newOrganizations;
+            return newOrganizations;
         }
         else {
-            organizations = data;
+            return data;
         }
     }
+
+    async function handleAddedOrDeletedNoteFromOrganization(event) {
+        const organizationKey = event.detail.organizationKey;
+        await getOrganizationNotes(organizationKey);
+        await updateDisplayNotes();
+    }
+
+    async function getOrganizationNotes(organizationKey: string) {
+        const data = await (await get(ref(db, `${$databasePath}/organizations/${organizationKey}/notes`))).val();
+        const notes = updateData(data);
+        updateOrganizationNotes(organizationKey, notes);
+    }
+
+    function updateOrganizationNotes(organizationKey: string, notes: any) {
+        let allOrganizationNotes = [...organizationNotes];
+        const indexOfOrganization = allOrganizationNotes.findIndex(notesForOrganization => notesForOrganization.organization === organizationKey);
+        allOrganizationNotes[indexOfOrganization !== -1 ? indexOfOrganization : 0] = {organization: organizationKey, notes: notes};
+        organizationNotes = allOrganizationNotes;
+    } 
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes`), (snapshot) => {
         const data = snapshot.val();
@@ -99,9 +122,11 @@
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), (snapshot) => {
         const data = snapshot.val();
-        notes = updateData(data);
+        personalNotes = updateData(data);
+        console.log('updating personal notes')
         if (displayNotes.length === 0) {
             displayNotes = updateData(data);
+            console.log('updating display notes')
         }
         filterNotes(selectedTheme);
         numberOfNotes = displayNotes ? displayNotes.length : 0;
@@ -123,11 +148,40 @@
     }
 
     function filterNotes(theme: Theme | null) {
-        if (theme && notes) {
-            displayNotes = notes.filter(note => note.themes?.includes(theme.name));
+        if (theme && displayNotes.length > 0) {
+            displayNotes = displayNotes.filter(note => note.themes?.includes(theme.name));
         }
         else {
-            displayNotes = notes;
+            updateDisplayNotes();
+        }
+    }
+
+    async function updateDisplayNotes() {
+        let totalNotes: any[] = [];
+        console.log('show personal notes ', showPersonalNotes)
+        if (showPersonalNotes && personalNotes && personalNotes.length > 0) {
+            totalNotes.push(...personalNotes);
+        }
+        if (showNotesForOrganizations && showNotesForOrganizations.length > 0) {
+            console.log('show notes for org', showNotesForOrganizations)
+            const notesForOrganization = await getNotesForOrganization();
+            if (notesForOrganization && notesForOrganization.length > 0)
+            totalNotes.push(...notesForOrganization);
+        }
+        displayNotes = totalNotes;
+    }
+
+    async function getNotesForOrganization() {
+        for (const showNotesForOrganization of showNotesForOrganizations) {
+            let notesForOrganization;
+            notesForOrganization = organizationNotes.find(organization => organization.organization === showNotesForOrganization.key)?.notes;
+            if (!notesForOrganization) {
+                await getOrganizationNotes(showNotesForOrganization.key);
+                notesForOrganization = organizationNotes.find(organization => organization.organization === showNotesForOrganization.key)?.notes;
+            }
+            if (notesForOrganization) {
+                return notesForOrganization;
+            }
         }
     }
 
@@ -158,15 +212,33 @@
                 {/if}
             </div>
         </div>
+        <div class="subheader-dropdown">
+            <button class="dropbtn">Show notes from organizations</button>
+            <div class="dropdown-content">
+                <label>
+                    <input type="checkbox" bind:checked={showPersonalNotes} on:change={updateDisplayNotes} />
+                    Personal notes
+                </label>
+                {#if organizations && organizations.length > 0}
+                    {#each organizations as organization}
+                        <!-- svelte-ignore a11y-invalid-attribute -->
+                        <label>
+                            <input type="checkbox" bind:group={showNotesForOrganizations} value={organization} on:change={updateDisplayNotes}/>
+                            {organization.name}
+                        </label>
+                    {/each}
+                {/if}
+            </div>
+        </div>
     </SubHeader>
 
     <AddButton>
-        <AddNote organizations={organizations} themes={themes}></AddNote>
+        <AddNote on:addedNoteToOrganization={handleAddedOrDeletedNoteFromOrganization} organizations={organizations} themes={themes}></AddNote>
     </AddButton>
 
     <div class="note-view">
         {#if view === 'MindMap'}
-            <MindMap theme={selectedTheme} notes={displayNotes} numberOfNotes={numberOfNotes}></MindMap>
+            <MindMap on:deletedNoteFromOrganization={handleAddedOrDeletedNoteFromOrganization} theme={selectedTheme} notes={displayNotes} numberOfNotes={numberOfNotes}></MindMap>
         {:else if view === 'Kanban'}
             <Kanban notes={displayNotes}></Kanban>
         {/if}
@@ -207,13 +279,14 @@
         z-index: 10;
     }
 
-    .dropdown-content a {
+    .dropdown-content a,
+    .dropdown-content label {
         color: black;
         padding: 12px 10px;
         text-decoration: none;
         display: block;
     }
-
+    
     .dropdown-content a:hover {background-color: lightgrey;}
 
     .subheader-dropdown:hover .dropdown-content {display: block;}

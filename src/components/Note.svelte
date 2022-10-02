@@ -4,15 +4,28 @@
     import { get as getValue } from 'svelte/store';
     import { ref, remove } from 'firebase/database';
     import { currentUser } from '../stores/user';
+    import { createEventDispatcher } from 'svelte';
 
     const db = getValue(database);
 
     export let note: Note;
     export let showNoteData: string[] = [];
 
+    const dispatch = createEventDispatcher();
+
     async function deleteNote() {
+        if (note.organizations && note.organizations.length > 0) {
+            for (const organization of note.organizations) {
+                await remove((ref(db, `${$databasePath}/organizations/${organization}/notes/${note.key}`)))
+                dispatch('deletedNoteFromOrganization', {
+                    organizationKey: organization
+                })
+            }
+        }
         await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/notes/${note.key}`)));
     }
+
+
 
 </script>
 

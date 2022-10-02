@@ -17,11 +17,6 @@
         updateOrganizations(data);
     });
 
-    async function getOrganization(key: string) {
-        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
-        return organization;
-    }
-
     async function updateOrganizations(data) {
         const newOrganizations: any[] = [];
         if (data) {
@@ -36,6 +31,11 @@
         else {
             organizations = data;
         }
+    }
+
+    async function getOrganization(key: string) {
+        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
+        return organization;
     }
 
 </script>

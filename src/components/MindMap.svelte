@@ -1,7 +1,7 @@
 <script lang="ts">
     import Note from "./Note.svelte";
     import type { Note as NoteType } from '../model/note';
-    import { afterUpdate } from "svelte";
+    import { afterUpdate, createEventDispatcher } from "svelte";
     import type { Theme } from "../model/theme";
 
     export let theme: Theme | null;
@@ -18,6 +18,12 @@
         tan = Math.tan(Math.PI/m); /* tangent of half the base angle */
     });
 
+    const dispatch = createEventDispatcher();
+
+    function forward(event) {
+        dispatch('deletedNoteFromOrganization', event.detail)
+    }
+
 
     // mindmap view: klikken op onderwerp = uitvouwen van de onderliggende onderwerpen (bovenliggende onderwerp wordt titel van de pagina, of breadcrumb?)
     // thema als titel bovenin de pagina? of als middelste van de mindmap?
@@ -30,7 +36,7 @@
         {#each notes as note, i}
             <!-- svelte-ignore a11y-invalid-attribute -->
             <a style={i - has_mid >= 0 ? `--i: ${i}` : null} href='#'>
-                <Note showNoteData={['title', 'description']} note={note}></Note>
+                <Note on:deletedNoteFromOrganization={forward} showNoteData={['title', 'description']} note={note}></Note>
             </a>
         {/each}
     {:else}
