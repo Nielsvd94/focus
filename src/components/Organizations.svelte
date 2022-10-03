@@ -31,6 +31,7 @@
         else {
             organizations = data;
         }
+        console.log(newOrganizations);
     }
 
     async function getOrganization(key: string) {

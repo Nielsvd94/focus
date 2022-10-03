@@ -3,11 +3,41 @@
     import { get as getValue } from 'svelte/store';
     import { get, ref, remove } from 'firebase/database';
     import { currentUser } from '../stores/user';
-    import type { Organization } from '../model/user';
+    import type { Organization, User } from '../model/user';
+    import { onMount } from 'svelte';
+    import AddMember from './AddMember.svelte';
+    import AddButton from './AddButton.svelte';
 
     const db = getValue(database);
 
     export let organization: Organization;
+    let members: User[] = [];
+
+    const isAdmin = organization.admin.includes($currentUser.uid);
+
+    onMount(async () => {
+        if (isAdmin) {
+            let organizationMembers: any[] = [];
+            for (const member of organization.members) {
+                if (await (await get(ref(db, `${$databasePath}/users/${member}`))).exists()) {
+                    const userData = await getUserData(member);
+                    organizationMembers.push(userData);
+                }
+                else {
+                    console.log('No user data found for member with key ' + member);
+                }
+            }
+            members = organizationMembers;
+        }
+    });
+
+    async function getUserData(userKey: string) {
+        const userData = await (await get(ref(db, `${$databasePath}/users/${userKey}`))).val();
+        userData.uid = userKey;
+        return userData;
+    }
+
+    let showMembers: boolean = false;
 
     async function deleteOrganization() {
         if (organization.members.length === 1 && organization.members[0] === $currentUser.uid) {
@@ -16,18 +46,56 @@
         await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${organization.key}`)));
     }
 
+    async function deleteMemberFromOrganization(memberKey: any) {
+        const indexOfMember = organization.members.findIndex(member => member === memberKey);
+        await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${indexOfMember}`)));
+        await updateMembers();
+    }
+
+    async function updateMembers() {
+        let newMemberData: User[] = [];
+        const newMembers = await (await get(ref(db, `${$databasePath}/organizations/${organization.key}/members`))).val();
+        for (const member of newMembers) {
+            const userData = await getUserData(member);
+            newMemberData.push(userData);
+        }
+        members = newMemberData;
+    }
+
 </script>
 
 <div class="single-organization">
     <h3>{organization.name}</h3>
-    {#if organization.admin.includes($currentUser.uid)}
-    <button on:click={deleteOrganization}>
-        <svg width=12 height=12>
-            <line id="top" x1=0 y1=0 x2=12 y2=12/>
-            <line id="bot" x1=0 y1=12 x2=12 y2=0/>
-        </svg>
-    </button>
+    {#if isAdmin}
+        <button class="delete-organization" on:click={deleteOrganization}>
+            <svg width=12 height=12>
+                <line id="top" x1=0 y1=0 x2=12 y2=12/>
+                <line id="bot" x1=0 y1=12 x2=12 y2=0/>
+            </svg>
+        </button>
+        <AddButton>
+            <AddMember organization={organization}></AddMember>
+        </AddButton>
     {/if}
+    <div>
+        <label>
+            <input type="checkbox" bind:checked={showMembers} />
+            Show members
+        </label>
+        {#if showMembers}
+            {#each members as member}
+                <p>{member.firstName} {member.lastName}</p>
+                {#if isAdmin}
+                    <button class="delete-member" on:click={() => { deleteMemberFromOrganization(member.uid) }}>
+                        <svg width=12 height=12>
+                            <line id="top" x1=0 y1=0 x2=12 y2=12/>
+                            <line id="bot" x1=0 y1=12 x2=12 y2=0/>
+                        </svg>
+                    </button>
+                {/if}
+            {/each}
+        {/if}
+    </div>
 </div>
 
 <style>

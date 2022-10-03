@@ -5,6 +5,7 @@ export const User = object({
     uid: string(),
     firstName: string(),
     lastName: string(),
+    email: string(),
 });
 export type User = Infer<typeof User>;
 

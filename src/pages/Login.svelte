@@ -35,13 +35,14 @@
           validateLoginForm(loginEmail, loginPassword); // Controleer of alle input goed is
           const userCred = await signInWithEmailAndPassword(getAuth(), loginEmail, loginPassword);
 
-          const uid = getAuth().currentUser?.uid
+          const uid = getAuth().currentUser?.uid;
           console.log(uid);
           let userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
           const user = {
             uid: uid,
             firstName: userDetails.firstName,
-            lastName: userDetails.lastName
+            lastName: userDetails.lastName,
+            email: userDetails.email
           }
           assert(user, User);
           currentUser.set(user);
@@ -67,6 +68,7 @@
                 await set(ref(db, `${$databasePath}/users/` + uid), {
                     firstName: firstName,
                     lastName: lastName,
+                    email: email
                 });
                     console.log(`Added account to database`);
                 }
@@ -75,7 +77,7 @@
                };
             }
             else {
-               console.log('No uid for this user', auth);
+               console.log('No uid for this user', getAuth());
             }
 
             // Automatisch terug naar inlog scherm

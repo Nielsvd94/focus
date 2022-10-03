@@ -3,17 +3,18 @@
 	import { initializeApp } from "firebase/app";
 	import { firebaseConfig } from './hosting/firebaseConfig';
 	import { firebaseApp, database, databasePath } from "./stores/backend";
-    import { get, getDatabase, ref } from 'firebase/database';
+    import { get, getDatabase, ref, update } from 'firebase/database';
     import MindSpace from './components/MindSpace.svelte';
     import { onMount } from 'svelte';
     import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { currentUser, loggedIn } from './stores/user';
-    import { assert } from 'superstruct';
+    import { array, assert } from 'superstruct';
     import { User } from './model/user';
     import Login from './pages/Login.svelte';
-	import { view } from './stores/displayData';
+	import { view, notifications } from './stores/displayData';
     import Organizations from './components/Organizations.svelte';
     import Themes from './components/Themes.svelte';
+    import { Notification } from './model/notifications';
 
 	const views = {
 		'MindSpace': MindSpace,
@@ -26,6 +27,8 @@
             await new Promise(r => setTimeout(r, 50));
         }
     });
+
+	let showAlert: boolean = false;
 
 	const app = initializeApp(firebaseConfig);
 	firebaseApp.set(app);
@@ -41,11 +44,13 @@
 				const userT = {
 					uid: uid,
 					firstName: userDetails.firstName,
-					lastName: userDetails.lastName
+					lastName: userDetails.lastName,
+					email: userDetails.email
 				}
 				assert(userT, User);
 				currentUser.set(userT);
 				$loggedIn = true;
+				await checkForNotifications();
 			}
 			else {
 				console.log('No uid found for current user');
@@ -55,10 +60,36 @@
 			$loggedIn = false;
 		}
 	});
+
+	async function checkForNotifications() {
+		const snapshot = await get(ref(db, `${$databasePath}/notifications/${$currentUser.email.replaceAll('.',',')}`));
+		if (snapshot.exists()) {
+			const data = snapshot.val();
+			const formattedData = updateNotifications(data);
+			$notifications = formattedData;
+			showAlert = true;
+		}
+    };
+
+	function updateNotifications(data: any) {
+        const newData: any[] = [];
+        if (data) {
+            for (const key of Object.keys(data)) {
+                const newEntry = data[key];
+                newEntry.key = key;
+                newData.push(newEntry);
+            }
+            return newData;
+        }
+		else {
+			return data;
+		}
+    }
+
 	
 </script>
 
-<Header></Header>
+<Header showAlert={showAlert}></Header>
 
 {#if ($loggedIn === undefined)}
 
