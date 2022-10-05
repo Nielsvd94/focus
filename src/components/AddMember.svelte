@@ -24,7 +24,6 @@
 
     async function createNotification() {
         const email = newMemberMail.replaceAll('.',',');
-        console.log(`${$databasePath}/notifications/${email}`);
         await push(ref(db, `${$databasePath}/notifications/${email}`), notification)
     }
 

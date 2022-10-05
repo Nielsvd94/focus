@@ -12,54 +12,57 @@
 
     export let organization: Organization;
     let members: User[] = [];
+    let showMembers: boolean = false;
 
-    const isAdmin = organization.admin.includes($currentUser.uid);
+    let isAdmin: boolean = false;
 
     onMount(async () => {
-        if (isAdmin) {
-            let organizationMembers: any[] = [];
-            for (const member of organization.members) {
-                if (await (await get(ref(db, `${$databasePath}/users/${member}`))).exists()) {
-                    const userData = await getUserData(member);
-                    organizationMembers.push(userData);
-                }
-                else {
-                    console.log('No user data found for member with key ' + member);
-                }
-            }
-            members = organizationMembers;
-        }
+        await updateMembers();
+        isAdmin = organization.admin.includes($currentUser.uid);
     });
 
     async function getUserData(userKey: string) {
-        const userData = await (await get(ref(db, `${$databasePath}/users/${userKey}`))).val();
-        userData.uid = userKey;
-        return userData;
+        const firstName = await (await get(ref(db, `${$databasePath}/users/${userKey}/firstName`))).val();
+        const lastName = await (await get(ref(db, `${$databasePath}/users/${userKey}/lastName`))).val();
+        const email = await (await get(ref(db, `${$databasePath}/users/${userKey}/email`))).val();
+        const user = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            uid:userKey
+        }
+        return user;
     }
 
-    let showMembers: boolean = false;
-
     async function deleteOrganization() {
-        if (organization.members.length === 1 && organization.members[0] === $currentUser.uid) {
-            await remove((ref(db, `${$databasePath}/organizations/${organization.key}`)));
-        }
+        await remove((ref(db, `${$databasePath}/organizations/${organization.key}`)));
         await remove((ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${organization.key}`)));
     }
 
     async function deleteMemberFromOrganization(memberKey: any) {
-        const indexOfMember = organization.members.findIndex(member => member === memberKey);
-        await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${indexOfMember}`)));
-        await updateMembers();
+        if (organization.members.length > 1) {
+            const indexOfMember = organization.members.findIndex(member => member === memberKey);
+            await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${indexOfMember}`)));
+            await updateMembers();
+        }
+        else {
+            await deleteOrganization();
+        }
     }
 
     async function updateMembers() {
         let newMemberData: User[] = [];
         const newMembers = await (await get(ref(db, `${$databasePath}/organizations/${organization.key}/members`))).val();
-        for (const member of newMembers) {
-            const userData = await getUserData(member);
-            newMemberData.push(userData);
+        if (newMembers) {
+            for (const member of newMembers) {
+                const userData = await getUserData(member);
+                newMemberData.push(userData);
+            }
+            members = newMemberData;
         }
-        members = newMemberData;
+        else {
+            members = [];
+        }
     }
 
 </script>

@@ -1,15 +1,19 @@
 <script>
-    import { currentUser, loggedIn } from '../stores/user';
-    import { database } from '../stores/backend';
     import { getAuth, signOut } from 'firebase/auth';
     import { createEventDispatcher } from "svelte";
+    import { currentUser, loggedIn, notifications, organizations } from '../stores/user';
+    import { view } from '../stores/displayData';
 
     let dispatch = createEventDispatcher();
 
 	let menuOpen = false;
-	let inputValue = '';
 	
     function logout() {
+        $currentUser = null;
+        $loggedIn = null;
+        $notifications = null;
+        $organizations = null;
+        $view = 'MindSpace';
         signOut(getAuth()).then(() => {
             dispatch('logout');
         });

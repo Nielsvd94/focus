@@ -3,23 +3,24 @@
 	import { initializeApp } from "firebase/app";
 	import { firebaseConfig } from './hosting/firebaseConfig';
 	import { firebaseApp, database, databasePath } from "./stores/backend";
-    import { get, getDatabase, ref, update } from 'firebase/database';
+    import { get, getDatabase, ref } from 'firebase/database';
     import MindSpace from './components/MindSpace.svelte';
     import { onMount } from 'svelte';
     import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { currentUser, loggedIn } from './stores/user';
-    import { array, assert } from 'superstruct';
+    import { assert } from 'superstruct';
     import { User } from './model/user';
     import Login from './pages/Login.svelte';
-	import { view, notifications } from './stores/displayData';
     import Organizations from './components/Organizations.svelte';
     import Themes from './components/Themes.svelte';
-    import { Notification } from './model/notifications';
+    import Notification from './components/Notifications.svelte';
+    import Inside from './pages/Inside.svelte';
 
 	const views = {
 		'MindSpace': MindSpace,
 		'Organizations': Organizations,
 		'Themes': Themes,
+		'Notifications': Notification
 	}
 
 	onMount(async () => {
@@ -27,8 +28,6 @@
             await new Promise(r => setTimeout(r, 50));
         }
     });
-
-	let showAlert: boolean = false;
 
 	const app = initializeApp(firebaseConfig);
 	firebaseApp.set(app);
@@ -40,56 +39,29 @@
 		if (user) {
 			const uid = getAuth().currentUser?.uid;
 			if (uid) {
-				const userDetails = await (await get(ref(db, `${$databasePath}/users/` + uid))).val();
+				const firstName = await (await get(ref(db, `${$databasePath}/users/${uid}/firstName`))).val();
+				const lastName = await (await get(ref(db, `${$databasePath}/users/${uid}/lastName`))).val();
+				const email = await (await get(ref(db, `${$databasePath}/users/${uid}/email`))).val();
 				const userT = {
 					uid: uid,
-					firstName: userDetails.firstName,
-					lastName: userDetails.lastName,
-					email: userDetails.email
+					firstName: firstName,
+					lastName: lastName,
+					email: email
 				}
-				assert(userT, User);
 				currentUser.set(userT);
-				$loggedIn = true;
-				await checkForNotifications();
+				loggedIn.set(true);
 			}
 			else {
 				console.log('No uid found for current user');
 			}
 		}
 		else {
-			$loggedIn = false;
+			loggedIn.set(false);
 		}
 	});
 
-	async function checkForNotifications() {
-		const snapshot = await get(ref(db, `${$databasePath}/notifications/${$currentUser.email.replaceAll('.',',')}`));
-		if (snapshot.exists()) {
-			const data = snapshot.val();
-			const formattedData = updateNotifications(data);
-			$notifications = formattedData;
-			showAlert = true;
-		}
-    };
-
-	function updateNotifications(data: any) {
-        const newData: any[] = [];
-        if (data) {
-            for (const key of Object.keys(data)) {
-                const newEntry = data[key];
-                newEntry.key = key;
-                newData.push(newEntry);
-            }
-            return newData;
-        }
-		else {
-			return data;
-		}
-    }
-
 	
 </script>
-
-<Header showAlert={showAlert}></Header>
 
 {#if ($loggedIn === undefined)}
 
@@ -97,11 +69,13 @@
 
 {:else if ($loggedIn !== true)}
 
+	<Header showAlert={false}></Header>
+
 	<Login on:login={() => $loggedIn = true}/>
 
-{:else}
+{:else if ($loggedIn && $currentUser.uid && $database)}
 
-	<svelte:component this={views[$view]}></svelte:component>
+	<Inside></Inside>
 
 {/if}
 

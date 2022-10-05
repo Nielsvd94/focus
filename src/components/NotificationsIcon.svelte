@@ -3,11 +3,10 @@
     import Tooltip from './Tooltip.svelte';
     import type { Notification } from '../model/notifications';
     import { onMount } from "svelte";
-    import { notifications } from '../stores/displayData';
+    import { notifications } from '../stores/user';
     import { view } from '../stores/displayData';
 
     let message = '';
-
 
     notifications.subscribe(async(notifications) => {
         if (notifications && notifications.length > 0)

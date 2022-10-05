@@ -1,9 +1,8 @@
 <script lang="ts">
     // Overzicht van 1 onderwerp
-    import Note from './Note.svelte';
     import type { Note as NoteType } from "../model/note";
     import { database, databasePath } from '../stores/backend';
-    import { get, onValue, ref, update } from 'firebase/database';
+    import { get, onValue, ref } from 'firebase/database';
     import AddNote from './AddNote.svelte';
     import type { Theme } from '../model/theme';
     import { get as getValue } from 'svelte/store';
@@ -70,31 +69,6 @@
     let showNotesForOrganizations: Organization[] = [];
 
     const db = getValue(database);
-
-    onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations`), async (snapshot) => {
-        const data = snapshot.val();
-        organizations = await updateOrganizations(data);
-    });
-
-    async function getOrganization(key: string) {
-        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
-        return organization;
-    }
-
-    async function updateOrganizations(data: any) {
-        const newOrganizations: any[] = [];
-        if (data) {
-            for (const key of Object.keys(data)) {
-                const newOrganization = await getOrganization(key);
-                newOrganization.key = key;
-                newOrganizations.push(newOrganization);
-            }
-            return newOrganizations;
-        }
-        else {
-            return data;
-        }
-    }
 
     async function handleAddedOrDeletedNoteFromOrganization(event) {
         const organizationKey = event.detail.organizationKey;

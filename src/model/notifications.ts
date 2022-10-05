@@ -1,4 +1,4 @@
-import { Infer, string, object, array, optional } from 'superstruct'
+import { Infer, string, object } from 'superstruct'
 
 export const Notification = object({
     key: string(),
