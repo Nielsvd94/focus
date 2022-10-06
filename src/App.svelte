@@ -12,19 +12,43 @@
 
 	let db: Database;
 
-	onMount(async () => {
-		const app = initializeApp(firebaseConfig);
-		firebaseApp.set(app);
-		db = getDatabase(app);
-		database.set(db);
-		const auth = getAuth();
-		console.log(auth);
-    });
+	const app = initializeApp(firebaseConfig);
+	firebaseApp.set(app);
+	db = getDatabase(app);
+	database.set(db);
+	const autho = getAuth();
+	console.log(autho);
 
 
 
 	let auth = getAuth();
+	if (auth.currentUser?.uid) {
+		const uid = getAuth().currentUser?.uid;
+		console.log(auth);
+		if (uid) {
+			let firstName, lastName, email;
+			get(ref(db, `${$databasePath}/users/${uid}/firstName`)).then(snapshot => {
+				firstName = snapshot.val();
+			});
+			get(ref(db, `${$databasePath}/users/${uid}/lastName`)).then(snapshot => {
+				lastName = snapshot.val();
+			});
+			get(ref(db, `${$databasePath}/users/${uid}/email`)).then(snapshot => {
+				email = snapshot.val();
+			});
+			const userT = {
+				uid: uid,
+				firstName: firstName,
+				lastName: lastName,
+				email: email
+			}
+			console.log(userT);
+			currentUser.set(userT);
+		}
+	}
+	
 	onAuthStateChanged(auth, async (user) =>  {
+		console.log('auth state changed')
 		if (user) {
 			const uid = getAuth().currentUser?.uid;
 			if (uid) {
