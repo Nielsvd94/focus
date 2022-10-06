@@ -51,8 +51,8 @@
          const uid = getAuth().currentUser?.uid;
          console.log(uid);
          const user = await getUserDetails(uid as string);
-         assert(user, User);
          currentUser.set(user);
+         console.log(user);
          dispatch("login");
       }
       catch (error) {
