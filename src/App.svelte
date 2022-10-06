@@ -3,23 +3,25 @@
 	import { initializeApp } from "firebase/app";
 	import { firebaseConfig } from './hosting/firebaseConfig';
 	import { firebaseApp, database, databasePath } from "./stores/backend";
-    import { get, getDatabase, ref } from 'firebase/database';
+    import { Database, get, getDatabase, ref } from 'firebase/database';
     import { onMount } from 'svelte';
     import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { currentUser, loggedIn, notifications } from './stores/user';
     import Login from './pages/Login.svelte';
     import Inside from './pages/Inside.svelte';
 
+	let db: Database;
+
 	onMount(async () => {
-        while(!db) {
-            await new Promise(r => setTimeout(r, 50));
-        }
+		const app = initializeApp(firebaseConfig);
+		firebaseApp.set(app);
+		db = getDatabase(app);
+		database.set(db);
+		const auth = getAuth();
+		console.log(auth);
     });
 
-	const app = initializeApp(firebaseConfig);
-	firebaseApp.set(app);
-	const db = getDatabase(app);
-	database.set(db);
+
 
 	let auth = getAuth();
 	onAuthStateChanged(auth, async (user) =>  {
@@ -49,6 +51,7 @@
 
 	async function waitForCurrenUser() {
 		while(!$currentUser.email) {
+			console.log($currentUser);
             await new Promise(r => setTimeout(r, 100));
         }
 		return 'done';
