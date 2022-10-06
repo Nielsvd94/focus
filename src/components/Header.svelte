@@ -2,19 +2,32 @@
     import UserMenu from './UserMenu.svelte';
     import MenuButton from './MenuButton.svelte'
     import SideMenu from './SideMenu.svelte'
+    import Notifications from './NotificationsIcon.svelte';
 
-    export let open = false;
+    export let showAlert: boolean = false;
+    export let showMenuButton: boolean = false;
+
+    let open: boolean = false;
+    
 </script>
 
 <div id="header">
     <div class="menu-button">
-        <MenuButton bind:open={open}/>
+        {#if showMenuButton}
+            <MenuButton bind:open={open}/>
 
-        <SideMenu bind:open={open}></SideMenu>
+            <SideMenu bind:open={open}></SideMenu>
+        {/if}
     </div>
 
     <div class="title-container">
         <h1 class="title">Focus.</h1>
+    </div>
+
+    <div class="alert-container">
+        {#if showAlert}
+            <Notifications></Notifications>
+        {/if}
     </div>
 
     <div class="user-menu-container">
@@ -28,7 +41,7 @@
 
     #header {
         display: grid;
-        grid-template-columns: 10% 60% 30%;
+        grid-template-columns: 10% 75% 5% 10%;
         background-color: black;
         color: white;
         margin: 0;
@@ -52,10 +65,16 @@
     }
 
     .user-menu-container {
-        grid-column: 3;
+        grid-column: 4;
     }
 
     .user-menu {
+        margin: 10px;
+        float: right;
+    }
+
+    .alert-container {
+        grid-column: 3;
         margin: 10px;
         float: right;
     }

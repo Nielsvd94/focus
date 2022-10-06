@@ -25,7 +25,6 @@
                 newThemes.push(newTheme);
             }
             themes = newThemes;
-            console.log(themes);
         }
         else {
             themes = data;

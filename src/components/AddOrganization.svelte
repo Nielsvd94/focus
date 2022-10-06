@@ -11,13 +11,14 @@
 
     let newOrganization = {
         name: '',
-        members: [$currentUser.uid],
-        admin: [$currentUser.uid]
+        members: [],
+        admin: []
     }
 
     async function addOrganization() {
-        console.log(newOrganization);
         const newOrganizationKey = await push(ref(db, `${$databasePath}/organizations`), newOrganization);
+        await set(ref(db, `${$databasePath}/organizations/${newOrganizationKey.key}/members/${$currentUser.uid}`), true);
+        await set(ref(db, `${$databasePath}/organizations/${newOrganizationKey.key}/admin/${$currentUser.uid}`), true);
         await set(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations/${newOrganizationKey.key}`), true);
     };
 

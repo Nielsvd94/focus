@@ -1,22 +1,23 @@
 <script lang="ts">
     import { Database, ref, push } from "firebase/database";
+    import { createEventDispatcher } from "svelte";
     import type { Theme } from "../model/theme";
-    import type { Organization } from "../model/user";
     import { database, databasePath } from "../stores/backend";
-    import { currentUser } from '../stores/user';
+    import { currentUser, organizations } from '../stores/user';
 
     let db: Database;
     const unsubsribeFromDatabase = database.subscribe(value => {
         db = value;
     });
 
-    export let organizations: Organization[] = [];
     export let themes: Theme[] = [];
 
     let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none' } = {
         title: '',
         description: ''
     }
+
+    const dispatch = createEventDispatcher();
 
     let selectedOrganizations = [];
     let selectedThemes = [];
@@ -29,10 +30,13 @@
     let showStatusPicker: boolean = false;
 
     function constructNote() {
-        if (selectedOrganizations.length > 0 && showOrganizationPicker) {
+        delete note.date;
+        delete note.organizations;
+        delete note.themes;
+        if (showOrganizationPicker && selectedOrganizations.length > 0 && showOrganizationPicker) {
             note.organizations = selectedOrganizations;
         }
-        if (selectedThemes.length > 0 && showThemePicker) {
+        if (showThemePicker && selectedThemes.length > 0 && showThemePicker) {
             note.themes = selectedThemes;
         }
         if (date && showDatePicker) {
@@ -46,7 +50,17 @@
 
     async function addNote() {
         const newNote = constructNote();
-        await push(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), newNote);
+        if (newNote.organizations && newNote.organizations.length > 0) {
+            for (const organization of newNote.organizations) {
+                await push(ref(db, `${$databasePath}/organizations/${organization}/notes`), newNote);
+                dispatch('addedNoteToOrganization', {
+                    organizationKey: organization
+                })
+            }
+        }
+        else {
+            await push(ref(db, `${$databasePath}/users/${$currentUser.uid}/notes`), newNote);
+        }
     };
 
     function addDateToNote() {
@@ -65,7 +79,6 @@
         else {
             delete note.status;
         }
-        console.log('status after ', note.status)
     }
 
 </script>
@@ -108,11 +121,11 @@
             <input class="checkbox" type="checkbox" bind:checked={showOrganizationPicker} />
         </label>
         {#if showOrganizationPicker}
-            {#if organizations && organizations.length > 0}
-                {#each organizations as organization}
+            {#if $organizations && $organizations.length > 0}
+                {#each $organizations as organization}
                     <label>
                         &nbsp;&nbsp;&nbsp;&nbsp;{organization.name}
-                        <input class="checkbox" type="checkbox" bind:group={selectedOrganizations} value={organization.name} />
+                        <input class="checkbox" type="checkbox" bind:group={selectedOrganizations} value={organization.key} />
                     </label>
                 {/each}
             {:else}

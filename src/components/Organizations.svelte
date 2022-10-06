@@ -1,42 +1,27 @@
 <script lang="ts">
-    import { get, onValue, ref } from "firebase/database";
-    import { assert } from "superstruct";
-    import { get as getValue } from 'svelte/store';
-    import { Organization as OrganizationType } from "../model/user";
+    import { get, ref, remove } from "firebase/database";
+    import { organizations, currentUser } from "../stores/user";
     import { database, databasePath } from "../stores/backend";
-    import { currentUser } from "../stores/user";
     import AddButton from "./AddButton.svelte";
     import AddOrganization from "./AddOrganization.svelte";
     import Organization from "./Organization.svelte";
+    import { onMount } from 'svelte';
 
-    let organizations: OrganizationType[];
-    const db = getValue(database);
-
-    onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/organizations`), (snapshot) => {
-        const data = snapshot.val();
-        updateOrganizations(data);
-    });
-
-    async function getOrganization(key: string) {
-        const organization = await (await get(ref(db, `${$databasePath}/organizations/${key}`))).val();
-        return organization;
-    }
-
-    async function updateOrganizations(data) {
-        const newOrganizations: any[] = [];
-        if (data) {
-            for (const key of Object.keys(data)) {
-                const newOrganization = await getOrganization(key);
-                newOrganization.key = key;
-                assert(newOrganization, OrganizationType);
-                newOrganizations.push(newOrganization);
+    onMount(async () => {
+        if ($organizations && $organizations.length > 0) {
+            for (const organization of $organizations) {
+                const key = organization.key;
+                if (!(await get(ref($database, `${$databasePath}/organizations/${key}`))).exists()) {
+                    console.log(`The organization with key ${key} no longer exists, removing it from your organizations`);
+                    await remove(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations/${key}`));
+                }
+                else if (!(await get(ref($database, `${$databasePath}/organizations/${key}/members/${$currentUser.uid}`))).val()) {
+                    console.log(`You are not a member of the organization with key ${key}, removing it from your organizations`);
+                    await remove(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations/${key}`));
+                }
             }
-            organizations = newOrganizations;
         }
-        else {
-            organizations = data;
-        }
-    }
+    });
 
 </script>
 
@@ -46,8 +31,8 @@
 
 
 <div class="organization-container">
-    {#if organizations && organizations.length > 0}
-        {#each organizations as organization}
+    {#if $organizations && $organizations.length > 0}
+        {#each $organizations as organization}
             <div class="organization">
                 <Organization {organization} />
             </div>
