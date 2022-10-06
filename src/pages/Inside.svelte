@@ -34,10 +34,6 @@
 	onValue(ref($database, `${$databasePath}/notifications/${$currentUser.email.replaceAll('.',',')}`), (snapshot) => {
 		const data = snapshot.val();
         updateNotifications(data);
-    }, async () => {
-        while(!$currentUser.email) {
-            await new Promise(r => setTimeout(r, 100));
-        }
     });
 
 	function updateNotifications(data: any) {

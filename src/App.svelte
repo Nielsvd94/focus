@@ -47,6 +47,13 @@
 		}
 	});
 
+	async function waitForCurrenUser() {
+		while(!$currentUser.email) {
+            await new Promise(r => setTimeout(r, 100));
+        }
+		return 'done';
+	}
+
 	
 </script>
 
@@ -62,9 +69,17 @@
 
 {:else if ($loggedIn && $currentUser.uid && $database)}
 
-	<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
+		{#await waitForCurrenUser()}
 
-	<Inside></Inside>
+			<p>waiting for user...</p>
+
+		{:then}
+
+			<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
+
+			<Inside></Inside>
+
+		{/await}
 
 {/if}
 
