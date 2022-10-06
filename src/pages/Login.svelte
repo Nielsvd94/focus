@@ -47,12 +47,9 @@
       try {
          validateLoginForm(loginEmail, loginPassword); // Controleer of alle input goed is
          const userCred = await signInWithEmailAndPassword(getAuth(), loginEmail, loginPassword);
-
          const uid = getAuth().currentUser?.uid;
-         console.log(uid);
          const user = await getUserDetails(uid as string);
          currentUser.set(user);
-         console.log(user);
          dispatch("login");
       }
       catch (error) {
