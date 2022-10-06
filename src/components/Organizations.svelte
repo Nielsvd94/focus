@@ -15,13 +15,13 @@
                     console.log(`The organization with key ${key} no longer exists, removing it from your organizations`);
                     await remove(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations/${key}`));
                 }
-                else if (!(await get(ref($database, `${$databasePath}/organizations/${key}/members`))).val().includes($currentUser.uid)) {
+                else if (!(await get(ref($database, `${$databasePath}/organizations/${key}/members/${$currentUser.uid}`))).val()) {
                     console.log(`You are not a member of the organization with key ${key}, removing it from your organizations`);
                     await remove(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations/${key}`));
                 }
             }
         }
-    })
+    });
 
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { database, databasePath } from '../stores/backend'
     import { get as getValue } from 'svelte/store';
-    import { get, ref, remove } from 'firebase/database';
+    import { get, ref, remove, set } from 'firebase/database';
     import { currentUser } from '../stores/user';
     import type { Organization, User } from '../model/user';
     import { onMount } from 'svelte';
@@ -18,7 +18,7 @@
 
     onMount(async () => {
         await updateMembers();
-        isAdmin = organization.admin.includes($currentUser.uid);
+        isAdmin = organization.admin[$currentUser.uid] === true;
     });
 
     async function getUserData(userKey: string) {
@@ -40,9 +40,8 @@
     }
 
     async function deleteMemberFromOrganization(memberKey: any) {
-        if (organization.members.length > 1) {
-            const indexOfMember = organization.members.findIndex(member => member === memberKey);
-            await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${indexOfMember}`)));
+        if (organization.members > 1) {
+            await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${memberKey}`)));
             await updateMembers();
         }
         else {
@@ -54,7 +53,7 @@
         let newMemberData: User[] = [];
         const newMembers = await (await get(ref(db, `${$databasePath}/organizations/${organization.key}/members`))).val();
         if (newMembers) {
-            for (const member of newMembers) {
+            for (const member of Object.keys(newMembers)) {
                 const userData = await getUserData(member);
                 newMemberData.push(userData);
             }
@@ -63,6 +62,11 @@
         else {
             members = [];
         }
+    }
+
+    async function makeAdmin(memberKey: string) {
+        console.log('ga je nog')
+        await set(ref(db, `${$databasePath}/organizations/${organization.key}/admin/${memberKey}`), true);
     }
 
 </script>
@@ -89,11 +93,11 @@
             {#each members as member}
                 <p>{member.firstName} {member.lastName}</p>
                 {#if isAdmin}
-                    <button class="delete-member" on:click={() => { deleteMemberFromOrganization(member.uid) }}>
-                        <svg width=12 height=12>
-                            <line id="top" x1=0 y1=0 x2=12 y2=12/>
-                            <line id="bot" x1=0 y1=12 x2=12 y2=0/>
-                        </svg>
+                    <button class="delete-member" on:click={async () => { await deleteMemberFromOrganization(member.uid) }}>
+                        Delete member
+                    </button>
+                    <button class="delete-member" on:click={async () => { await makeAdmin(member.uid) }}>
+                        Make admin
                     </button>
                 {/if}
             {/each}

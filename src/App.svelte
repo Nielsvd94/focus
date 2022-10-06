@@ -4,24 +4,11 @@
 	import { firebaseConfig } from './hosting/firebaseConfig';
 	import { firebaseApp, database, databasePath } from "./stores/backend";
     import { get, getDatabase, ref } from 'firebase/database';
-    import MindSpace from './components/MindSpace.svelte';
     import { onMount } from 'svelte';
     import { getAuth, onAuthStateChanged } from 'firebase/auth';
-	import { currentUser, loggedIn } from './stores/user';
-    import { assert } from 'superstruct';
-    import { User } from './model/user';
+	import { currentUser, loggedIn, notifications } from './stores/user';
     import Login from './pages/Login.svelte';
-    import Organizations from './components/Organizations.svelte';
-    import Themes from './components/Themes.svelte';
-    import Notification from './components/Notifications.svelte';
     import Inside from './pages/Inside.svelte';
-
-	const views = {
-		'MindSpace': MindSpace,
-		'Organizations': Organizations,
-		'Themes': Themes,
-		'Notifications': Notification
-	}
 
 	onMount(async () => {
         while(!db) {
@@ -69,11 +56,13 @@
 
 {:else if ($loggedIn !== true)}
 
-	<Header showAlert={false}></Header>
+	<Header showMenuButton={false} showAlert={false}></Header>
 
 	<Login on:login={() => $loggedIn = true}/>
 
 {:else if ($loggedIn && $currentUser.uid && $database)}
+
+	<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
 
 	<Inside></Inside>
 

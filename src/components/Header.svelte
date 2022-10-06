@@ -4,16 +4,20 @@
     import SideMenu from './SideMenu.svelte'
     import Notifications from './NotificationsIcon.svelte';
 
-    export let open: boolean = false;
     export let showAlert: boolean = false;
+    export let showMenuButton: boolean = false;
+
+    let open: boolean = false;
     
 </script>
 
 <div id="header">
     <div class="menu-button">
-        <MenuButton bind:open={open}/>
+        {#if showMenuButton}
+            <MenuButton bind:open={open}/>
 
-        <SideMenu bind:open={open}></SideMenu>
+            <SideMenu bind:open={open}></SideMenu>
+        {/if}
     </div>
 
     <div class="title-container">

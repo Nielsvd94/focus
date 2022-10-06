@@ -11,14 +11,18 @@
     import Themes from '../components/Themes.svelte';
     import Notification from '../components/Notifications.svelte';
 
+    // INSIDE SHOULD REFER TO EVERYTHING UNDER THE HEADER AND NEXT TO THE SIDEMENU
+    // IF SIDE MENU OPEN, SHIFT THE ENTIRE INSIDE TO THE RIGHT WITH THE SAME DURATION AND PIXELS AS THE SIDE MENU
+    // SO THAT IF SIDE MENU IS CLOSED, WE CAN STILL USE THE SPACE TO THE LEFT OF THE SCREEN
+    // SIDEMENU HAS: id="side-menu" style="left: {open ? '0px' : '-300px'
+    // ALL COMPONENTS THAT ARE MOUNTED BY THE INSIDE COMPONENT SHOULD LOSE THEIR OVERALL LEFT MARGIN, THAT SHOULD ALL BE CONTROLLED BY THE INSIDE COMPONENT
+
 	const views = {
 		'MindSpace': MindSpace,
 		'Organizations': Organizations,
 		'Themes': Themes,
 		'Notifications': Notification
 	}
-
-	let showAlert: boolean = false;
 
 	onValue(ref($database, `${$databasePath}/notifications/${$currentUser.email.replaceAll('.',',')}`), (snapshot) => {
 		const data = snapshot.val();
@@ -33,13 +37,8 @@
                 newEntry.key = key;
                 newData.push(newEntry);
             }
-            showAlert = true;
-        }
-        else {
-            showAlert = false;
         }
         $notifications = newData;
-		
     }
 
 	onValue(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations`), (snapshot) => {
@@ -52,9 +51,10 @@
         if (data) {
             for (const key of Object.keys(data)) {
                 const newOrganization = await getOrganization(key);
+                console.log(newOrganization);
                 if (newOrganization) {
                     newOrganization.key = key;
-                    assert(newOrganization, OrganizationType);
+                    console.log(newOrganization)
                     newOrganizations.push(newOrganization);
                 }
                 else {
@@ -63,6 +63,7 @@
                 }
             }
             $organizations = newOrganizations;
+            console.log($organizations)
         }
         else {
             $organizations = data;
@@ -75,8 +76,6 @@
     }
 	
 </script>
-
-    <Header showAlert={showAlert}></Header>
 
 	<svelte:component this={views[$view]}></svelte:component>
 

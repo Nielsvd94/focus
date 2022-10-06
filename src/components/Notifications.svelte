@@ -18,9 +18,8 @@
 
     async function joinOrganization(organizationKey: string) {
         const members = (await get(ref($database, `${$databasePath}/organizations/${organizationKey}/members`))).val();
-        if (!members.includes($currentUser.uid)) {
-            members.push($currentUser.uid);
-            await set(ref($database, `${$databasePath}/organizations/${organizationKey}/members`), members);
+        if (!members[$currentUser.uid] === true) {
+            await set(ref($database, `${$databasePath}/organizations/${organizationKey}/members/${$currentUser.uid}`), true);
             await set(ref($database, `${$databasePath}/users/${$currentUser.uid}/organizations/${organizationKey}`), true);
         }
     }
