@@ -10,6 +10,7 @@
     import Organizations from '../components/Organizations.svelte';
     import Themes from '../components/Themes.svelte';
     import Notification from '../components/Notifications.svelte';
+    import { onMount } from 'svelte';
 
     // INSIDE SHOULD REFER TO EVERYTHING UNDER THE HEADER AND NEXT TO THE SIDEMENU
     // IF SIDE MENU OPEN, SHIFT THE ENTIRE INSIDE TO THE RIGHT WITH THE SAME DURATION AND PIXELS AS THE SIDE MENU
@@ -23,6 +24,12 @@
 		'Themes': Themes,
 		'Notifications': Notification
 	}
+
+    onMount(async () => {
+        while(!$currentUser) {
+            await new Promise(r => setTimeout(r, 100));
+        }
+    });
 
 	onValue(ref($database, `${$databasePath}/notifications/${$currentUser.email.replaceAll('.',',')}`), (snapshot) => {
 		const data = snapshot.val();
