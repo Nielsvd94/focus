@@ -58,10 +58,8 @@
         if (data) {
             for (const key of Object.keys(data)) {
                 const newOrganization = await getOrganization(key);
-                console.log(newOrganization);
                 if (newOrganization) {
                     newOrganization.key = key;
-                    console.log(newOrganization)
                     newOrganizations.push(newOrganization);
                 }
                 else {
@@ -70,7 +68,6 @@
                 }
             }
             $organizations = newOrganizations;
-            console.log($organizations)
         }
         else {
             $organizations = data;

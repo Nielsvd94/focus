@@ -3,52 +3,19 @@
 	import { initializeApp } from "firebase/app";
 	import { firebaseConfig } from './hosting/firebaseConfig';
 	import { firebaseApp, database, databasePath } from "./stores/backend";
-    import { Database, get, getDatabase, ref } from 'firebase/database';
-    import { onMount } from 'svelte';
+    import { get, getDatabase, ref } from 'firebase/database';
     import { getAuth, onAuthStateChanged } from 'firebase/auth';
 	import { currentUser, loggedIn, notifications } from './stores/user';
     import Login from './pages/Login.svelte';
     import Inside from './pages/Inside.svelte';
 
-	let db: Database;
-
 	const app = initializeApp(firebaseConfig);
 	firebaseApp.set(app);
-	db = getDatabase(app);
+	const db = getDatabase(app);
 	database.set(db);
-	const autho = getAuth();
-	console.log(autho);
-
-
 
 	let auth = getAuth();
-	if (auth.currentUser?.uid) {
-		const uid = getAuth().currentUser?.uid;
-		console.log(auth);
-		if (uid) {
-			let firstName, lastName, email;
-			get(ref(db, `${$databasePath}/users/${uid}/firstName`)).then(snapshot => {
-				firstName = snapshot.val();
-			});
-			get(ref(db, `${$databasePath}/users/${uid}/lastName`)).then(snapshot => {
-				lastName = snapshot.val();
-			});
-			get(ref(db, `${$databasePath}/users/${uid}/email`)).then(snapshot => {
-				email = snapshot.val();
-			});
-			const userT = {
-				uid: uid,
-				firstName: firstName,
-				lastName: lastName,
-				email: email
-			}
-			console.log(userT);
-			currentUser.set(userT);
-		}
-	}
-	
 	onAuthStateChanged(auth, async (user) =>  {
-		console.log('auth state changed')
 		if (user) {
 			const uid = getAuth().currentUser?.uid;
 			if (uid) {
@@ -61,7 +28,6 @@
 					lastName: lastName,
 					email: email
 				}
-				console.log(userT)
 				currentUser.set(userT);
 				loggedIn.set(true);
 			}
@@ -89,9 +55,9 @@
 
 {:else if ($loggedIn && $currentUser.uid && $database)}
 
-			<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
+	<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
 
-			<Inside></Inside>
+	<Inside></Inside>
 
 {/if}
 
