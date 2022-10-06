@@ -61,6 +61,7 @@
 					lastName: lastName,
 					email: email
 				}
+				console.log(userT)
 				currentUser.set(userT);
 				loggedIn.set(true);
 			}
@@ -72,14 +73,6 @@
 			loggedIn.set(false);
 		}
 	});
-
-	async function waitForCurrenUser() {
-		while(!$currentUser.email) {
-			console.log($currentUser);
-            await new Promise(r => setTimeout(r, 100));
-        }
-		return 'done';
-	}
 
 	
 </script>
@@ -96,17 +89,9 @@
 
 {:else if ($loggedIn && $currentUser.uid && $database)}
 
-		{#await waitForCurrenUser()}
-
-			<p>waiting for user...</p>
-
-		{:then}
-
 			<Header showMenuButton={true} showAlert={$notifications !== null && $notifications.length > 0}></Header>
 
 			<Inside></Inside>
-
-		{/await}
 
 {/if}
 
