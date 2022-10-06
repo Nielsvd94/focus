@@ -3,8 +3,15 @@
     import { database, databasePath } from '../stores/backend';
     import type { Notification } from '../model/notifications';
     import { get, ref, remove, set } from 'firebase/database';
+    import { onMount } from 'svelte';
 
     let openNotifications: Notification[] = [];
+
+    onMount(async () => {
+        while(!$currentUser) {
+            await new Promise(r => setTimeout(r, 100));
+        }
+    });
 
     notifications.subscribe(value => {
         const notifications: Notification[] = [];
