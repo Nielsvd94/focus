@@ -2,16 +2,14 @@
     import { Database, ref, push } from "firebase/database";
     import { createEventDispatcher } from "svelte";
     import type { Theme } from "../model/theme";
-    import type { Organization } from "../model/user";
     import { database, databasePath } from "../stores/backend";
-    import { currentUser } from '../stores/user';
+    import { currentUser, organizations } from '../stores/user';
 
     let db: Database;
     const unsubsribeFromDatabase = database.subscribe(value => {
         db = value;
     });
 
-    export let organizations: Organization[] = [];
     export let themes: Theme[] = [];
 
     let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none' } = {
@@ -123,8 +121,8 @@
             <input class="checkbox" type="checkbox" bind:checked={showOrganizationPicker} />
         </label>
         {#if showOrganizationPicker}
-            {#if organizations && organizations.length > 0}
-                {#each organizations as organization}
+            {#if $organizations && $organizations.length > 0}
+                {#each $organizations as organization}
                     <label>
                         &nbsp;&nbsp;&nbsp;&nbsp;{organization.name}
                         <input class="checkbox" type="checkbox" bind:group={selectedOrganizations} value={organization.key} />

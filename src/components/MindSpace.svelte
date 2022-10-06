@@ -203,7 +203,7 @@
     </SubHeader>
 
     <AddButton>
-        <AddNote on:addedNoteToOrganization={handleAddedOrDeletedNoteFromOrganization} organizations={organizations} themes={themes}></AddNote>
+        <AddNote on:addedNoteToOrganization={handleAddedOrDeletedNoteFromOrganization} themes={themes}></AddNote>
     </AddButton>
 
     <div class="note-view">

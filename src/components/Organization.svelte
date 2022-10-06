@@ -1,7 +1,7 @@
 <script lang="ts">
     import { database, databasePath } from '../stores/backend'
     import { get as getValue } from 'svelte/store';
-    import { get, ref, remove, set } from 'firebase/database';
+    import { get, ref, remove, set, update } from 'firebase/database';
     import { currentUser } from '../stores/user';
     import type { Organization, User } from '../model/user';
     import { onMount } from 'svelte';
@@ -12,8 +12,8 @@
 
     export let organization: Organization;
     let members: User[] = [];
+    let admin: User[] = [];
     let showMembers: boolean = false;
-
     let isAdmin: boolean = false;
 
     onMount(async () => {
@@ -40,7 +40,10 @@
     }
 
     async function deleteMemberFromOrganization(memberKey: any) {
-        if (organization.members > 1) {
+        if (Object.keys(organization.members).length > 1) {
+            if (organization.admin[memberKey] === true) {
+                await remove((ref(db, `${$databasePath}/organizations/${organization.key}/admin/${memberKey}`)));
+            }
             await remove((ref(db, `${$databasePath}/organizations/${organization.key}/members/${memberKey}`)));
             await updateMembers();
         }
@@ -67,6 +70,7 @@
     async function makeAdmin(memberKey: string) {
         console.log('ga je nog')
         await set(ref(db, `${$databasePath}/organizations/${organization.key}/admin/${memberKey}`), true);
+        // await updateOrganizations();
     }
 
 </script>
@@ -96,9 +100,11 @@
                     <button class="delete-member" on:click={async () => { await deleteMemberFromOrganization(member.uid) }}>
                         Delete member
                     </button>
-                    <button class="delete-member" on:click={async () => { await makeAdmin(member.uid) }}>
-                        Make admin
-                    </button>
+                    {#if !(organization.admin[member.uid] === true)}
+                        <button class="delete-member" on:click={async () => { await makeAdmin(member.uid) }}>
+                            Make admin
+                        </button>
+                    {/if}
                 {/if}
             {/each}
         {/if}
