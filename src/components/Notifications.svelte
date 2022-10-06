@@ -7,11 +7,6 @@
 
     let openNotifications: Notification[] = [];
 
-    onMount(async () => {
-        while(!$currentUser) {
-            await new Promise(r => setTimeout(r, 100));
-        }
-    });
 
     notifications.subscribe(value => {
         const notifications: Notification[] = [];
