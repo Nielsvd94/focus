@@ -12,6 +12,8 @@
     import MindMap from './MindMap.svelte';
     import Kanban from './Kanban.svelte';
     import SubHeader from './SubHeader.svelte';
+    import Cascade from "./Cascading.svelte";
+    import Cascading from "./Cascading.svelte";
 
     // WAT MOET DE MINDSPACE DOEN:
         // V ophalen van organisaties
@@ -60,9 +62,10 @@
     let selectedTheme: Theme | null;
     const views = {
 		'MindMap': MindMap,
-        'Kanban': Kanban
+        'Kanban': Kanban,
+        'Cascading': Cascading
 	}
-    let view: string = 'MindMap';
+    let view: string = 'Cascading';
 
     let showPersonalNotes: boolean = true;
     let showNotesForOrganizations: Organization[] = [];
@@ -192,7 +195,6 @@
                 </label>
                 {#if $organizations && $organizations.length > 0}
                     {#each $organizations as organization}
-                        <!-- svelte-ignore a11y-invalid-attribute -->
                         <label>
                             <input type="checkbox" bind:group={showNotesForOrganizations} value={organization} on:change={updateDisplayNotes}/>
                             {organization.name}
@@ -204,7 +206,7 @@
     </SubHeader>
 
     <AddButton>
-        <AddNote on:addedNoteToOrganization={handleAddedOrDeletedNoteFromOrganization} themes={themes}></AddNote>
+        <AddNote on:addedNoteToOrganization={handleAddedOrDeletedNoteFromOrganization} themes={themes} notes={displayNotes}></AddNote>
     </AddButton>
 
     <div class="note-view">
@@ -212,6 +214,8 @@
             <MindMap on:deletedNoteFromOrganization={handleAddedOrDeletedNoteFromOrganization} theme={selectedTheme} notes={displayNotes} numberOfNotes={numberOfNotes}></MindMap>
         {:else if view === 'Kanban'}
             <Kanban notes={displayNotes}></Kanban>
+        {:else if view === 'Cascading'}
+            <Cascading notes={displayNotes}></Cascading>
         {/if}
     </div>
 </div>

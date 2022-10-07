@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Database, ref, push } from "firebase/database";
     import { createEventDispatcher } from "svelte";
+    import type { Note } from "../model/note";
     import type { Theme } from "../model/theme";
     import { database, databasePath } from "../stores/backend";
     import { currentUser, organizations } from '../stores/user';
@@ -11,8 +12,9 @@
     });
 
     export let themes: Theme[] = [];
+    export let notes: Note[] = [];
 
-    let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none' } = {
+    let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none', parent?: string[] } = {
         title: '',
         description: ''
     }
@@ -21,6 +23,7 @@
 
     let selectedOrganizations = [];
     let selectedThemes = [];
+    let selectedParents = [];
     let date: string;
     let status: 'todo' | 'doing' | 'done' | 'none';
 
@@ -28,6 +31,7 @@
     let showThemePicker: boolean = false;
     let showDatePicker: boolean = false;
     let showStatusPicker: boolean = false;
+    let showParentPicker: boolean = false;
 
     function constructNote() {
         delete note.date;
@@ -39,17 +43,22 @@
         if (showThemePicker && selectedThemes.length > 0 && showThemePicker) {
             note.themes = selectedThemes;
         }
-        if (date && showDatePicker) {
+        if (showDatePicker && date) {
             note.date = date;
         }
-        if (status && status !== 'none' && showStatusPicker) {
+        if (showStatusPicker && status && status !== 'none') {
             note.status = status;
+        }
+        if (showParentPicker && selectedParents && selectedParents.length > 0) {
+            note.parent = selectedParents;
         }
         return note;
     }
 
     async function addNote() {
         const newNote = constructNote();
+        console.log(newNote)
+        console.log(selectedParents)
         if (newNote.organizations && newNote.organizations.length > 0) {
             for (const organization of newNote.organizations) {
                 await push(ref(db, `${$databasePath}/organizations/${organization}/notes`), newNote);
@@ -92,7 +101,7 @@
     <div>
         <textarea type="text" bind:value={note.description} placeholder="Description" />
     </div>
-    <div>
+    <div class="note-metadata">
         <label>
             This note has a status
             <input class="checkbox" type="checkbox" bind:checked={showStatusPicker} on:change={addStatusToNote} />
@@ -106,7 +115,7 @@
             </select>
         {/if}
     </div>
-    <div>
+    <div class="note-metadata">
         <label>
             This note has a date
             <input class="checkbox" type="checkbox" bind:checked={showDatePicker} />
@@ -116,7 +125,7 @@
             <button class="clear-date" on:click={ () => { date=''; delete note.date; } }>Clear date</button>
         {/if}
     </div>
-    <div>
+    <div class="note-metadata">
         <label>
             Add note to organization
             <input class="checkbox" type="checkbox" bind:checked={showOrganizationPicker} />
@@ -134,7 +143,7 @@
             {/if}
         {/if}
     </div>
-    <div>
+    <div class="note-metadata">
         <label>
             Add note to theme
             <input class="checkbox" type="checkbox" bind:checked={showThemePicker} />
@@ -149,6 +158,24 @@
                 {/each}
             {:else}
                 <p class="no-data">You don't have any themes</p>
+            {/if}
+        {/if}
+    </div>
+    <div class="note-metadata">
+        <label>
+            Add note to parent
+            <input class="checkbox" type="checkbox" bind:checked={showParentPicker} />
+        </label>
+        {#if showParentPicker}
+            {#if notes && notes.length > 0}
+                {#each notes as note}
+                    <label class="select-parent">
+                        <input class="checkbox" type="checkbox" bind:group={selectedParents} value={note.key} />
+                        {note.title}
+                    </label>
+                {/each}
+            {:else}
+                <p class="no-data">You don't have any notes</p>
             {/if}
         {/if}
     </div>
@@ -176,6 +203,7 @@
         padding: 10px;
         float: right;
         z-index: 9;
+        max-width: 200px;
     }
 
     input {
@@ -195,10 +223,22 @@
 
     .checkbox {
         width: 15px;
+        margin-bottom: 0px;
+    }
+
+    .note-metadata {
+        margin-bottom: 10px;
     }
 
     .no-data {
         font-size: 8.5pt;
+    }
+
+    .select-parent {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid lightgrey;
     }
 
 </style>

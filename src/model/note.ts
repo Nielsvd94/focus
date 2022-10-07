@@ -7,7 +7,8 @@ export const Note = object({
     themes: optional(array(string())),
     organizations: optional(array(string())),
     date: optional(string()),
-    status: optional(string())
+    status: optional(string()),
+    parent: optional(array(string())),
 })
 export type Note = Infer<typeof Note>;
 
@@ -20,7 +21,8 @@ export const Notes = array(object({
         themes: optional(array(string())),
         organizations: optional(array(string())),
         date: optional(date()),
-        status: optional(string())
+        status: optional(string()),
+        parent: optional(array(string())),
     })
 }));
 export type Notes = Infer<typeof Notes>;
