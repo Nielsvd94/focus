@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Database, ref, push } from "firebase/database";
     import { createEventDispatcher } from "svelte";
+    import type { Note } from "../model/note";
     import type { Theme } from "../model/theme";
     import { database, databasePath } from "../stores/backend";
     import { currentUser, organizations } from '../stores/user';
@@ -11,8 +12,9 @@
     });
 
     export let themes: Theme[] = [];
+    export let notes: Note[] = [];
 
-    let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none' } = {
+    let note: { title: string, description: string, date?: string, organizations?: string[], themes?: string[], status?: 'todo' | 'doing' | 'done' | 'none', parent?: string[] } = {
         title: '',
         description: ''
     }
@@ -21,6 +23,7 @@
 
     let selectedOrganizations = [];
     let selectedThemes = [];
+    let selectedParents = [];
     let date: string;
     let status: 'todo' | 'doing' | 'done' | 'none';
 
@@ -28,6 +31,7 @@
     let showThemePicker: boolean = false;
     let showDatePicker: boolean = false;
     let showStatusPicker: boolean = false;
+    let showParentPicker: boolean = false;
 
     function constructNote() {
         delete note.date;
@@ -148,6 +152,24 @@
                 {/each}
             {:else}
                 <p class="no-data">You don't have any themes</p>
+            {/if}
+        {/if}
+    </div>
+    <div>
+        <label>
+            Add note to parent
+            <input class="checkbox" type="checkbox" bind:checked={showParentPicker} />
+        </label>
+        {#if showParentPicker}
+            {#if notes && notes.length > 0}
+                {#each notes as note}
+                    <label>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{note.title}
+                        <input class="checkbox" type="checkbox" bind:group={selectedParents} value={note.key} />
+                    </label>
+                {/each}
+            {:else}
+                <p class="no-data">You don't have any notes</p>
             {/if}
         {/if}
     </div>
