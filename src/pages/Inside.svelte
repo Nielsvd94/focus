@@ -1,16 +1,14 @@
 <script lang="ts">
-    import Header from '../components/Header.svelte';
 	import { databasePath, database } from "../stores/backend";
     import { get, onValue, ref, remove } from 'firebase/database';
     import MindSpace from '../components/MindSpace.svelte';
 	import { currentUser, organizations, notifications } from '../stores/user';
-    import { assert } from 'superstruct';
-	import { Organization as OrganizationType } from "../model/user";
 	import { view } from '../stores/displayData';
     import Organizations from '../components/Organizations.svelte';
     import Themes from '../components/Themes.svelte';
     import Notification from '../components/Notifications.svelte';
     import { onMount } from 'svelte';
+    import { kopieerDataNaarTestDatabase } from '../util/database';
 
     // INSIDE SHOULD REFER TO EVERYTHING UNDER THE HEADER AND NEXT TO THE SIDEMENU
     // IF SIDE MENU OPEN, SHIFT THE ENTIRE INSIDE TO THE RIGHT WITH THE SAME DURATION AND PIXELS AS THE SIDE MENU
@@ -82,6 +80,12 @@
 </script>
 
 	<svelte:component this={views[$view]}></svelte:component>
+
+    {#if location.hostname === 'localhost'}
+
+        <button on:click={kopieerDataNaarTestDatabase}>Copy prod data to test db</button>
+
+    {/if}
 
 <style>
 
