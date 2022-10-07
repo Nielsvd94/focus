@@ -7,7 +7,7 @@
     import type { Theme } from '../model/theme';
     import { get as getValue } from 'svelte/store';
     import AddButton from './AddButton.svelte';
-    import { currentUser } from '../stores/user';
+    import { currentUser, organizations } from '../stores/user';
     import type { Organization } from '../model/user';
     import MindMap from './MindMap.svelte';
     import Kanban from './Kanban.svelte';
@@ -52,7 +52,6 @@
       * mindmap: breadcrumb van hoever je bent doorgeklikt? clickable maken
       */
 
-    let organizations: Organization[] = [];
     let personalNotes: NoteType[] = [];
     let organizationNotes: {organization: string, notes: NoteType[]}[] = [];
     let displayNotes: NoteType[] = [];
@@ -79,6 +78,7 @@
     async function getOrganizationNotes(organizationKey: string) {
         const data = await (await get(ref(db, `${$databasePath}/organizations/${organizationKey}/notes`))).val();
         const notes = updateData(data);
+        console.log('get notes', notes);
         updateOrganizationNotes(organizationKey, notes);
     }
 
@@ -87,6 +87,7 @@
         const indexOfOrganization = allOrganizationNotes.findIndex(notesForOrganization => notesForOrganization.organization === organizationKey);
         allOrganizationNotes[indexOfOrganization !== -1 ? indexOfOrganization : 0] = {organization: organizationKey, notes: notes};
         organizationNotes = allOrganizationNotes;
+        console.log(organizationNotes);
     } 
 
     onValue(ref(db, `${$databasePath}/users/${$currentUser.uid}/themes`), (snapshot) => {
@@ -189,8 +190,8 @@
                     <input type="checkbox" bind:checked={showPersonalNotes} on:change={updateDisplayNotes} />
                     Personal notes
                 </label>
-                {#if organizations && organizations.length > 0}
-                    {#each organizations as organization}
+                {#if $organizations && $organizations.length > 0}
+                    {#each $organizations as organization}
                         <!-- svelte-ignore a11y-invalid-attribute -->
                         <label>
                             <input type="checkbox" bind:group={showNotesForOrganizations} value={organization} on:change={updateDisplayNotes}/>

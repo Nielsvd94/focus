@@ -59,7 +59,8 @@
                 await push(ref(db, `${$databasePath}/organizations/${organization}/notes`), newNote);
                 dispatch('addedNoteToOrganization', {
                     organizationKey: organization
-                })
+                });
+                console.log('added note to org');
             }
         }
         else {
